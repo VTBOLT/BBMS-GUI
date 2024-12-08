@@ -1,0 +1,77 @@
+appId: com.vtbolt.bmsgui
+productName: BBMS GUI
+copyright: Copyright © 2024 BOLT @ Virginia Tech
+
+# Directory configuration
+directories:
+    output: dist
+    buildResources: resources
+
+# Files to include in the build
+files:
+    - out/**/*
+    - out/*
+    - main/main.js
+    - main/preload.cjs
+    - styles/*
+    - package.json
+    # - "!**/node_modules/**"
+    - "node_modules/@serialport/**/*"
+    - "node_modules/serialport/**/*"
+
+# Windows configuration
+win:
+    target:
+        - target: nsis
+          arch:
+              - x64
+    icon: resources/icon.ico
+    publisherName: BOLT @ Virginia Tech
+
+# NSIS configuration for Windows installer
+nsis:
+    oneClick: true
+    perMachine: false
+    allowToChangeInstallationDirectory: false
+    deleteAppDataOnUninstall: true
+    createDesktopShortcut: true
+    createStartMenuShortcut: true
+    shortcutName: BBMS GUI
+
+# macOS configuration
+mac:
+    target:
+        - target: dmg
+          arch:
+              - x64
+              - arm64
+    category: public.app-category.productivity
+    icon: resources/icon.icns
+    hardenedRuntime: true
+    gatekeeperAssess: false
+
+# DMG configuration for macOS
+dmg:
+    contents:
+        - x: 130
+          y: 220
+        - x: 410
+          y: 220
+          type: link
+          path: /Applications
+
+# Linux configuration
+linux:
+    target:
+        - target: AppImage
+        - target: deb
+        - target: rpm
+    icon: resources/icon.png
+    category: Utility
+    maintainer: mdigiorgio@vt.edu
+
+# Compression settings
+compression: maximum
+
+# Whether to asar the app
+asar: true
