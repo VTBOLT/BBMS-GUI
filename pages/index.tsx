@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, FormEvent } from "react";
+import React, { useState, FormEvent } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,7 @@ import {
 	AlertTriangle,
 } from "lucide-react";
 import { useElectron } from "@/components/useElectron";
-import { port } from "@/components/serialTypes";
 import DiagnosticDisplay from "@/components/DiagnosticDisplay";
-import {
-	generateRandomDiagnosticData,
-	printDiagnosticData,
-} from "@/components/diagnosticGen";
 import PortSelectionDialog from "@/components/PortSelectionDialog";
 import OverviewTab from "@/components/OverviewTab";
 import VoltageSummaryTab from "@/components/VoltageSummaryTab";
@@ -27,207 +22,31 @@ import TemperatureSummaryTab from "@/components/TemperatureSummaryTab";
 import CellBalancingTab from "@/components/CellBalancingTab";
 import TerminalTab from "@/components/TerminalTab";
 import SettingsTab from "@/components/SettingsTab";
-import { NodeData, fetchInterval } from "../types";
+import { usePortConnection } from "@/hooks/usePortConnection";
+import { useNodeData } from "@/hooks/useNodeData";
 
 // const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const BMSFrontend = () => {
 	const electron = useElectron();
-	const [deviceId, setDeviceId] = useState<number>(1);
-	const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
 	const [balancingTime, setBalancingTime] = useState<number>(60);
 	const [rawCommand, setRawCommand] = useState<string>("");
 	const [numNodes, setNumNodes] = useState<number>(1);
-	const [error, setError] = useState<string>("");
-	const [allNodeData, setAllNodeData] = useState<NodeData[]>([]);
-	const [availablePorts, setAvailablePorts] = useState<port[]>([]);
-	const [selectedPort, setSelectedPort] = useState<string>("");
-	const [showPortDialog, setShowPortDialog] = useState<boolean>(false);
-	const [isConnected, setIsConnected] = useState<boolean>(false);
-	const [isFetching, setIsFetching] = useState<boolean>(false);
 
-	const handlePortConnection = async (port: string) => {
-		if (!electron) return;
-		try {
-			console.log("Connecting to port", port);
-			await electron.connect(port);
-			setIsConnected(true);
-			setShowPortDialog(false);
-			setError("");
-		} catch (err) {
-			setError(`Failed to connect to port ${port}: ${err}`);
-		}
-	};
+	const {
+		availablePorts,
+		selectedPort,
+		setSelectedPort,
+		showPortDialog,
+		setShowPortDialog,
+		isConnected,
+		error,
+		handlePortConnection,
+		handleDisconnect,
+	} = usePortConnection();
 
-	const handleDisconnect = async () => {
-		if (!electron) return;
-		try {
-			console.log("Disconnecting from port");
-			electron.disconnect();
-			setIsConnected(false);
-			setShowPortDialog(false);
-			setError("");
-		} catch (err) {
-			setError(`Failed to disconnect from port: ${err}`);
-		}
-	};
-
-	const sendCommand = useCallback(
-		async (
-			command: string,
-			...args: number[] | string[]
-		): Promise<string> => {
-			// Simulate sending command over UART
-			// console.log("Sending command:", command, args);
-			setTerminalOutput((prev) => [
-				...prev,
-				`> ${command} ${args.join(" ")}`,
-			]);
-
-			if (!isConnected) {
-				setError("Not connected to serial port");
-				return "";
-			} else {
-				if (error == "Not connected to serial port") {
-					setError("");
-				}
-			}
-
-			const nodeId: number = args[0] as number;
-
-			// Handle responses based on command
-			switch (command) {
-				case "v":
-					// Mock voltage data
-					if (!electron) {
-						console.log("No electron :(");
-						return "FAIL";
-					} else {
-						try {
-							const { success, message, output } =
-								await electron.getVoltage(nodeId);
-							if (success) {
-								return output.toString();
-							} else {
-								console.log(message);
-								return "FAIL";
-							}
-						} catch (err) {
-							console.error(err);
-							return "FAIL";
-						}
-					}
-				case "t":
-					if (!electron) {
-						console.log("No electron :(");
-						return "FAIL";
-					} else {
-						try {
-							const { success, message, output } =
-								await electron.getTemps(nodeId);
-							if (success) {
-								return output.toString();
-							} else {
-								console.log(message);
-								return "FAIL";
-							}
-						} catch (err) {
-							console.error(err);
-							return "FAIL";
-						}
-					}
-				// Add other command handlers
-				case "d":
-					// Mock diagnostic data
-					const mockDiagnostic = generateRandomDiagnosticData();
-					return printDiagnosticData(mockDiagnostic);
-				default:
-					setError("Invalid command");
-					return "";
-			}
-		},
-		[electron, isConnected, error]
-	);
-
-	// Initialize on mount
-	// Fetch data for all nodes
-	const fetchAllNodesData = useCallback(async () => {
-		// If already fetching, skip this execution
-		if (isFetching) return;
-
-		try {
-			setIsFetching(true);
-			const voltages = await sendCommand("v", deviceId);
-			if (voltages === "FAIL") {
-				console.error("Failed to fetch voltages");
-				return;
-			}
-
-			const temps = await sendCommand("t", deviceId);
-			if (temps === "FAIL") {
-				console.error("Failed to fetch voltages");
-				return;
-			}
-
-			if (voltages.includes("nan") || temps.includes("nan")) {
-				console.error("NAN in data");
-				return;
-			}
-
-			try {
-				const newData = [
-					{
-						nodeId: deviceId,
-						voltages: JSON.parse(`[${voltages}]`),
-						temps: JSON.parse(`[${temps}]`),
-						diagnostic: "1,2,3,4",
-					},
-				];
-				setAllNodeData(newData);
-			} catch (parseErr) {
-				console.error("Failed to parse data:", parseErr);
-			}
-		} catch (err) {
-			console.error("Error in fetchAllNodesData:", err);
-		} finally {
-			setIsFetching(false);
-		}
-	}, [deviceId, sendCommand, isFetching]);
-
-	// Modify the useEffect to handle the interval more carefully
-	useEffect(() => {
-		if (!electron) return;
-
-		let intervalId: NodeJS.Timeout | null = null;
-
-		const initializeAndStartFetching = async () => {
-			if (!isConnected) {
-				try {
-					const ports = await electron.listPorts();
-					setAvailablePorts(ports.ports);
-					setShowPortDialog(true);
-				} catch (err) {
-					setError(`Failed to list ports: ${err}`);
-				}
-				return;
-			}
-
-			// Initial fetch
-			// await fetchAllNodesData();
-
-			// Set up interval for subsequent fetches
-			intervalId = setInterval(fetchAllNodesData, fetchInterval);
-		};
-
-		initializeAndStartFetching();
-
-		// Cleanup function
-		return () => {
-			if (intervalId) {
-				clearInterval(intervalId);
-			}
-		};
-	}, [numNodes, fetchAllNodesData, electron, isConnected]);
+	const { deviceId, setDeviceId, allNodeData, terminalOutput, sendCommand } =
+		useNodeData(isConnected);
 
 	const handleRawCommand = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
