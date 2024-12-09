@@ -1,23 +1,6 @@
 import React, { useState, useEffect, useCallback, FormEvent } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import {
-	AlertDialog,
-	AlertDialogContent,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogCancel,
-	AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -37,18 +20,14 @@ import {
 	generateRandomDiagnosticData,
 	printDiagnosticData,
 } from "@/components/diagnosticGen";
-
-const maxCellVoltage = 4.2;
-const minCellVoltage = 2.8;
-const lowCellVoltage = 3.0;
-const fetchInterval = 500;
-
-interface NodeData {
-	nodeId: number;
-	voltages: number[];
-	temps: number[];
-	diagnostic: string;
-}
+import PortSelectionDialog from "@/components/PortSelectionDialog";
+import OverviewTab from "@/components/OverviewTab";
+import VoltageSummaryTab from "@/components/VoltageSummaryTab";
+import TemperatureSummaryTab from "@/components/TemperatureSummaryTab";
+import CellBalancingTab from "@/components/CellBalancingTab";
+import TerminalTab from "@/components/TerminalTab";
+import SettingsTab from "@/components/SettingsTab";
+import { NodeData, fetchInterval } from "../types";
 
 // const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -265,51 +244,17 @@ const BMSFrontend = () => {
 
 	return (
 		<div className="container mx-auto p-4 max-w-6xl">
-			<AlertDialog open={showPortDialog} onOpenChange={setShowPortDialog}>
-				<AlertDialogContent className="bg-white dark:bg-gray-800">
-					<AlertDialogHeader>
-						<AlertDialogTitle>Select Serial Port</AlertDialogTitle>
-						<AlertDialogDescription>
-							Choose a serial port to connect to the BMS system.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<div className="flex items-center gap-4 my-4">
-						<Select
-							value={selectedPort}
-							onValueChange={setSelectedPort}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Select a port" />
-							</SelectTrigger>
-							<SelectContent>
-								{availablePorts.map((port) => (
-									<SelectItem
-										key={port.path}
-										value={port.path}
-									>
-										{port.path}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-					<AlertDialogFooter>
-						<AlertDialogAction
-							onClick={() => handleDisconnect()}
-							disabled={!isConnected}
-						>
-							Disconnect
-						</AlertDialogAction>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction
-							onClick={() => handlePortConnection(selectedPort)}
-							disabled={!selectedPort}
-						>
-							Connect
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
+			<PortSelectionDialog
+				showPortDialog={showPortDialog}
+				setShowPortDialog={setShowPortDialog}
+				selectedPort={selectedPort}
+				setSelectedPort={setSelectedPort}
+				availablePorts={availablePorts}
+				isConnected={isConnected}
+				onConnect={handlePortConnection}
+				onDisconnect={handleDisconnect}
+			/>
+
 			<Card>
 				<CardHeader className="flex flex-row">
 					<CardTitle className="text-2xl grow">
@@ -386,422 +331,11 @@ const BMSFrontend = () => {
 				</TabsList>
 
 				<TabsContent value="overview" className="mt-4">
-					<div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-						{/* Total Battery Voltage */}
-						<Card>
-							<CardHeader className="pb-2">
-								<CardTitle className="text-base">
-									Total Battery Voltage
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="flex flex-col items-center">
-									<div className="text-4xl font-bold">
-										{allNodeData
-											.reduce(
-												(total, node) =>
-													total +
-													node.voltages
-														.filter((v) => v > 0)
-														.reduce(
-															(sum, v) => sum + v,
-															0
-														),
-												0
-											)
-											.toFixed(1)}
-										V
-									</div>
-									<div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-										{allNodeData.reduce(
-											(total, node) =>
-												total +
-												node.voltages.filter(
-													(v) => v > 0
-												).length,
-											0
-										)}{" "}
-										Active Cells
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-
-						{/* Cell Voltage Range */}
-						<Card>
-							<CardHeader className="pb-2">
-								<CardTitle className="text-base">
-									Cell Voltage Range
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="flex justify-between items-center">
-									<div className="text-center">
-										<div className="text-sm text-gray-500 dark:text-gray-400">
-											Min
-										</div>
-										<div className="text-2xl font-semibold">
-											{Math.min(
-												...allNodeData.flatMap((node) =>
-													node.voltages.filter(
-														(v) => v > 0
-													)
-												)
-											).toFixed(3)}
-											V
-										</div>
-										<div className="text-xs text-gray-500 dark:text-gray-400">
-											Cell{" "}
-											{allNodeData
-												.find((node) =>
-													node.voltages.includes(
-														Math.min(
-															...allNodeData.flatMap(
-																(node) =>
-																	node.voltages.filter(
-																		(v) =>
-																			v >
-																			0
-																	)
-															)
-														)
-													)
-												)
-												?.voltages.indexOf(
-													Math.min(
-														...allNodeData.flatMap(
-															(node) =>
-																node.voltages.filter(
-																	(v) => v > 0
-																)
-														)
-													)
-												) ?? -2 + 1}{" "}
-											on Node{" "}
-											{
-												allNodeData.find((node) =>
-													node.voltages.includes(
-														Math.min(
-															...allNodeData.flatMap(
-																(node) =>
-																	node.voltages.filter(
-																		(v) =>
-																			v >
-																			0
-																	)
-															)
-														)
-													)
-												)?.nodeId
-											}
-										</div>
-									</div>
-									<div className="text-center">
-										<div className="text-sm text-gray-500 dark:text-gray-400">
-											Δ
-										</div>
-										<div className="text-2xl font-semibold">
-											{(
-												Math.max(
-													...allNodeData.flatMap(
-														(node) =>
-															node.voltages
-																.filter(
-																	(v) => v > 0
-																)
-																.map((v) => v)
-													)
-												) -
-												Math.min(
-													...allNodeData.flatMap(
-														(node) =>
-															node.voltages.filter(
-																(v) => v > 0
-															)
-													)
-												)
-											).toFixed(3)}
-											V
-										</div>
-									</div>
-									<div className="text-center">
-										<div className="text-sm text-gray-500 dark:text-gray-400">
-											Max
-										</div>
-										<div className="text-2xl font-semibold">
-											{Math.max(
-												...allNodeData.flatMap((node) =>
-													node.voltages.filter(
-														(v) => v > 0
-													)
-												)
-											).toFixed(3)}
-											V
-										</div>
-										<div className="text-xs text-gray-500 dark:text-gray-400">
-											Cell{" "}
-											{allNodeData
-												.find((node) =>
-													node.voltages.includes(
-														Math.max(
-															...allNodeData.flatMap(
-																(node) =>
-																	node.voltages.filter(
-																		(v) =>
-																			v >
-																			0
-																	)
-															)
-														)
-													)
-												)
-												?.voltages.indexOf(
-													Math.max(
-														...allNodeData.flatMap(
-															(node) =>
-																node.voltages.filter(
-																	(v) => v > 0
-																)
-														)
-													)
-												) ?? -2 + 1}{" "}
-											on Node{" "}
-											{
-												allNodeData.find((node) =>
-													node.voltages.includes(
-														Math.max(
-															...allNodeData.flatMap(
-																(node) =>
-																	node.voltages.filter(
-																		(v) =>
-																			v >
-																			0
-																	)
-															)
-														)
-													)
-												)?.nodeId
-											}
-										</div>
-									</div>
-								</div>
-								<div className="text-[12px] text-gray-500 dark:text-gray-400 text-center mt-2">
-									Across{" "}
-									{allNodeData.reduce(
-										(total, node) =>
-											total +
-											node.voltages.filter((v) => v > 0)
-												.length,
-										0
-									)}{" "}
-									Active Cells
-								</div>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardHeader className="pb-2">
-								<CardTitle className="text-base">
-									Temperature Range
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="flex justify-between items-center">
-									<div className="text-center">
-										<div className="text-sm text-gray-500 dark:text-gray-400">
-											Min
-										</div>
-										<div className="text-2xl font-semibold">
-											{Math.min(
-												...allNodeData.flatMap((node) =>
-													node.temps.filter(
-														(t) => t !== 0
-													)
-												)
-											).toFixed(1)}
-											°C
-										</div>
-									</div>
-									<div className="text-center">
-										<div className="text-sm text-gray-500 dark:text-gray-400">
-											Δ
-										</div>
-										<div className="text-2xl font-semibold">
-											{(
-												Math.max(
-													...allNodeData.flatMap(
-														(node) =>
-															node.temps.filter(
-																(t) => t !== 0
-															)
-													)
-												) -
-												Math.min(
-													...allNodeData.flatMap(
-														(node) =>
-															node.temps.filter(
-																(t) => t !== 0
-															)
-													)
-												)
-											).toFixed(1)}
-											°C
-										</div>
-									</div>
-									<div className="text-center">
-										<div className="text-sm text-gray-500 dark:text-gray-400">
-											Max
-										</div>
-										<div className="text-2xl font-semibold">
-											{Math.max(
-												...allNodeData.flatMap((node) =>
-													node.temps.filter(
-														(t) => t !== 0
-													)
-												)
-											).toFixed(1)}
-											°C
-										</div>
-									</div>
-								</div>
-								<div className="text-[12px] text-gray-500 dark:text-gray-400 text-center mt-2">
-									Across{" "}
-									{allNodeData.reduce(
-										(total, node) =>
-											total +
-											node.temps.filter((t) => t !== 0)
-												.length,
-										0
-									)}{" "}
-									Active Thermistors
-								</div>
-							</CardContent>
-						</Card>
-
-						{/* System Status */}
-						<Card>
-							<CardHeader className="pb-2">
-								<CardTitle className="text-base">
-									System Status
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="grid grid-cols-2 gap-2 text-sm">
-									<div className="flex justify-between border-b dark:border-gray-700 py-1">
-										<span className="text-gray-500 dark:text-gray-400">
-											Active Nodes
-										</span>
-										<span className="font-medium">
-											{allNodeData.length}
-										</span>
-									</div>
-									<div className="flex justify-between border-b dark:border-gray-700 py-1">
-										<span className="text-gray-500 dark:text-gray-400">
-											Active Cells
-										</span>
-										<span className="font-medium">
-											{allNodeData.reduce(
-												(total, node) =>
-													total +
-													node.voltages.filter(
-														(v) => v > 0
-													).length,
-												0
-											)}
-										</span>
-									</div>
-									<div className="flex justify-between border-b dark:border-gray-700 py-1">
-										<span className="text-gray-500 dark:text-gray-400">
-											Active Thermistors
-										</span>
-										<span className="font-medium">
-											{allNodeData.reduce(
-												(total, node) =>
-													total +
-													node.temps.filter(
-														(t) => t !== 0
-													).length,
-												0
-											)}
-										</span>
-									</div>
-									<div className="flex justify-between border-b dark:border-gray-700 py-1">
-										<span className="text-gray-500 dark:text-gray-400">
-											Cell Balance
-										</span>
-										<span className="font-medium text-green-600 dark:text-green-500">
-											{Math.max(
-												...allNodeData.flatMap((node) =>
-													node.voltages.filter(
-														(v) => v > 0
-													)
-												)
-											) -
-												Math.min(
-													...allNodeData.flatMap(
-														(node) =>
-															node.voltages.filter(
-																(v) => v > 0
-															)
-													)
-												) <
-											0.1
-												? "Good"
-												: "Needs Balance"}
-										</span>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-					</div>
+					<OverviewTab allNodeData={allNodeData} />
 				</TabsContent>
 
 				<TabsContent value="voltage-summary" className="mt-4">
-					<Card>
-						<CardHeader className="pb-1">
-							<CardTitle className="flex justify-between items-center text-base">
-								<span>All Cell Voltages</span>
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="grid gap-1">
-								{allNodeData.map((node) => (
-									<div key={node.nodeId} className="flex">
-										<div className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 pl-1 sideways">
-											Node {node.nodeId}
-										</div>
-										<div className="border rounded-lg p-0.5 grid grid-cols-7 gap-0.5 grow">
-											{node.voltages.map(
-												(voltage, idx) => (
-													<div
-														key={idx}
-														className={`rounded px-0.5 py-0.5 ${
-															voltage <
-																minCellVoltage ||
-															voltage >
-																maxCellVoltage
-																? "bg-red-100 dark:bg-red-900"
-																: voltage <
-																  lowCellVoltage
-																? "bg-yellow-100 dark:bg-yellow-900"
-																: "bg-green-100 dark:bg-green-900"
-														}`}
-													>
-														<div className="text-center text-[11px] leading-none font-mono dark:text-gray-100">
-															{voltage.toFixed(3)}
-															V
-														</div>
-														<div className="text-center text-[8px] leading-none text-gray-500 dark:text-gray-400">
-															C{idx + 1}
-														</div>
-													</div>
-												)
-											)}
-										</div>
-									</div>
-								))}
-							</div>
-						</CardContent>
-					</Card>
+					<VoltageSummaryTab allNodeData={allNodeData} />
 				</TabsContent>
 
 				<TabsContent value="diagnostics" className="mt-4">
@@ -817,169 +351,33 @@ const BMSFrontend = () => {
 				</TabsContent>
 
 				<TabsContent value="temp-summary" className="mt-4">
-					<Card>
-						<CardHeader className="pb-1">
-							<CardTitle className="flex justify-between items-center text-base">
-								<span>All Temperatures</span>
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="grid gap-4 grid-cols-2">
-								{allNodeData.map((node) => (
-									<div key={node.nodeId} className="flex">
-										<div className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 pl-1 sideways">
-											Node {node.nodeId}
-										</div>
-										<div className="border rounded-lg p-1 grid grid-cols-4 gap-0.5 grow">
-											{node.temps.map((temp, idx) => (
-												<div
-													key={idx}
-													className={`rounded px-0.5 py-0.5 ${
-														temp > 50
-															? "bg-red-100 dark:bg-red-900"
-															: temp > 40
-															? "bg-yellow-100 dark:bg-yellow-900"
-															: "bg-green-100 dark:bg-green-900"
-													}`}
-												>
-													<div className="text-center text-[12px] leading-none font-mono dark:text-gray-100">
-														{temp.toFixed(3)}°C
-													</div>
-													<div className="text-center text-[10px] leading-none text-gray-500 dark:text-gray-400">
-														GPIO{idx + 3}
-													</div>
-												</div>
-											))}
-										</div>
-									</div>
-								))}
-							</div>
-						</CardContent>
-					</Card>
+					<TemperatureSummaryTab allNodeData={allNodeData} />
 				</TabsContent>
 
 				<TabsContent value="balancing" className="mt-4">
-					<Card>
-						<CardHeader>
-							<CardTitle>Cell Balancing Control</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="flex flex-col gap-4">
-								<div className="flex items-center gap-4">
-									<Input
-										type="number"
-										value={deviceId}
-										onChange={(e) =>
-											setDeviceId(
-												parseInt(e.target.value)
-											)
-										}
-										className="w-32"
-										min={0}
-									/>
-									<span className="text-sm text-gray-500">
-										Device ID
-									</span>
-								</div>
-								<div className="flex items-center gap-4">
-									<Input
-										type="number"
-										value={balancingTime}
-										onChange={(e) =>
-											setBalancingTime(
-												parseInt(e.target.value)
-											)
-										}
-										className="w-32"
-										min={0}
-									/>
-									<span className="text-sm text-gray-500">
-										Balancing Time (s)
-									</span>
-								</div>
-								<div className="flex gap-4">
-									<Button
-										onClick={() =>
-											sendCommand(
-												"b",
-												deviceId,
-												balancingTime
-											)
-										}
-									>
-										Start Balancing
-									</Button>
-									<Button
-										variant="destructive"
-										onClick={() =>
-											sendCommand("x", deviceId)
-										}
-									>
-										Stop Balancing
-									</Button>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
+					<CellBalancingTab
+						deviceId={deviceId}
+						setDeviceId={setDeviceId}
+						balancingTime={balancingTime}
+						setBalancingTime={setBalancingTime}
+						sendCommand={sendCommand}
+					/>
 				</TabsContent>
 
 				<TabsContent value="terminal" className="mt-4">
-					<Card>
-						<CardHeader>
-							<CardTitle>Terminal Interface</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="bg-gray-900 dark:bg-gray-950 text-gray-100 p-4 rounded-lg h-96 mb-4 overflow-auto font-mono text-sm">
-								{terminalOutput.map((line, i) => (
-									<div
-										key={i}
-										className="text-gray-100 dark:text-gray-300"
-									>
-										{line}
-									</div>
-								))}
-							</div>
-							<form
-								onSubmit={handleRawCommand}
-								className="flex gap-2"
-							>
-								<Input
-									value={rawCommand}
-									onChange={(e) =>
-										setRawCommand(e.target.value)
-									}
-									placeholder="Enter command..."
-									className="font-mono"
-								/>
-								<Button type="submit">Send</Button>
-							</form>
-						</CardContent>
-					</Card>
+					<TerminalTab
+						terminalOutput={terminalOutput}
+						rawCommand={rawCommand}
+						setRawCommand={setRawCommand}
+						handleRawCommand={handleRawCommand}
+					/>
 				</TabsContent>
 
 				<TabsContent value="settings" className="mt-4">
-					<Card>
-						<CardHeader>
-							<CardTitle>System Settings</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="grid gap-4">
-								<Button
-									onClick={() => sendCommand("m", deviceId)}
-								>
-									Get Misc Information
-								</Button>
-								<Button
-									onClick={() => sendCommand("z", deviceId)}
-								>
-									Check Errors
-								</Button>
-								<Button onClick={() => sendCommand("q")}>
-									Quick Setup
-								</Button>
-							</div>
-						</CardContent>
-					</Card>
+					<SettingsTab
+						deviceId={deviceId}
+						sendCommand={sendCommand}
+					/>
 				</TabsContent>
 			</Tabs>
 		</div>
