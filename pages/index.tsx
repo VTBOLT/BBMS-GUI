@@ -1,9 +1,3 @@
-import React, { useState, FormEvent } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
 	Battery,
 	Activity,
@@ -13,6 +7,12 @@ import {
 	Usb,
 	AlertTriangle,
 } from "lucide-react";
+import React, { useState, FormEvent } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useElectron } from "@/components/useElectron";
 import DiagnosticDisplay from "@/components/DiagnosticDisplay";
 import PortSelectionDialog from "@/components/PortSelectionDialog";

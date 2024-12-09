@@ -255,6 +255,55 @@ ipcMain.handle("get-temps", async (event, nodeId) => {
 	}
 });
 
+ipcMain.handle("get-diagnostics", async (event, nodeId) => {
+	try {
+		if (!serialPort || !serialPort.isOpen) {
+			throw new Error("Serial port is not connected");
+		}
+
+		serialPort.flush();
+		await delay(50);
+
+		const data = `d ${nodeId}\n`;
+
+		await new Promise((resolve, reject) => {
+			serialPort.write(data, (error) => {
+				if (error) reject(error);
+			});
+			serialPort.drain(() => {
+				resolve();
+			});
+		});
+
+		let received = await readUntilDone();
+		let lines = [];
+		for (const line of received) {
+			if (line.indexOf(",") !== -1) {
+				lines = [line];
+			}
+		}
+
+		if (lines.length === 0) {
+			return {
+				success: false,
+				message: "Data not sent :(",
+				output: lines,
+			};
+		}
+
+		return {
+			success: true,
+			message: "Data sent successfully",
+			output: lines,
+		};
+	} catch (error) {
+		serialPort.write("\n");
+		serialPort.write("\n");
+		console.error("Error sending data:", error);
+		throw error;
+	}
+});
+
 // Disconnect from serial port
 ipcMain.handle("disconnect-port", async () => {
 	try {

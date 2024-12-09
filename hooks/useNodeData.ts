@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { NodeData, fetchInterval } from "../types";
 import { useElectron } from "@/components/useElectron";
-import {
-	generateRandomDiagnosticData,
-	printDiagnosticData,
-} from "@/components/diagnosticGen";
 
 export const useNodeData = (isConnected: boolean) => {
 	const electron = useElectron();
@@ -75,8 +71,24 @@ export const useNodeData = (isConnected: boolean) => {
 						}
 					}
 				case "d":
-					const mockDiagnostic = generateRandomDiagnosticData();
-					return printDiagnosticData(mockDiagnostic);
+					if (!electron) {
+						console.log("No electron :(");
+						return "FAIL";
+					} else {
+						try {
+							const { success, message, output } =
+								await electron.getDiagnostics(nodeId);
+							if (success) {
+								return output.toString();
+							} else {
+								console.log(message);
+								return "FAIL";
+							}
+						} catch (err) {
+							console.error(err);
+							return "FAIL";
+						}
+					}
 				default:
 					setError("Invalid command");
 					return "";
