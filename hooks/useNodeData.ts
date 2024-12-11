@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { NodeData, fetchInterval } from "../types";
 import { useElectron } from "@/components/useElectron";
 
-export const useNodeData = (isConnected: boolean) => {
+export const useNodeData = (isConnected: boolean, numNodes: number) => {
 	const electron = useElectron();
 	const [deviceId, setDeviceId] = useState<number>(1);
 	const [allNodeData, setAllNodeData] = useState<NodeData[]>([]);
@@ -100,44 +100,51 @@ export const useNodeData = (isConnected: boolean) => {
 	const fetchAllNodesData = useCallback(async () => {
 		if (isFetching) return;
 
+		const newData: {
+			nodeId: number;
+			voltages: number[];
+			temps: number[];
+			diagnostic: string;
+		}[] = [];
+
 		try {
-			setIsFetching(true);
-			const voltages = await sendCommand("v", deviceId);
-			if (voltages === "FAIL") {
-				console.error("Failed to fetch voltages");
-				return;
-			}
+			for (let i = 1; i <= numNodes; i++) {
+				setIsFetching(true);
+				const voltages = await sendCommand("v", i);
+				if (voltages === "FAIL") {
+					console.error("Failed to fetch voltages");
+					return;
+				}
 
-			const temps = await sendCommand("t", deviceId);
-			if (temps === "FAIL") {
-				console.error("Failed to fetch temperatures");
-				return;
-			}
+				const temps = await sendCommand("t", i);
+				if (temps === "FAIL") {
+					console.error("Failed to fetch temperatures");
+					return;
+				}
 
-			if (voltages.includes("nan") || temps.includes("nan")) {
-				console.error("NAN in data");
-				return;
-			}
+				if (voltages.includes("nan") || temps.includes("nan")) {
+					console.error("NAN in data");
+					return;
+				}
 
-			try {
-				const newData = [
-					{
-						nodeId: deviceId,
+				try {
+					newData.push({
+						nodeId: i,
 						voltages: JSON.parse(`[${voltages}]`),
 						temps: JSON.parse(`[${temps}]`),
 						diagnostic: "1,2,3,4",
-					},
-				];
-				setAllNodeData(newData);
-			} catch (parseErr) {
-				console.error("Failed to parse data:", parseErr);
+					});
+				} catch (parseErr) {
+					console.error("Failed to parse data:", parseErr);
+				}
 			}
+			setAllNodeData(newData);
 		} catch (err) {
 			console.error("Error in fetchAllNodesData:", err);
 		} finally {
 			setIsFetching(false);
 		}
-	}, [deviceId, sendCommand, isFetching]);
+	}, [sendCommand, isFetching, numNodes]);
 
 	useEffect(() => {
 		if (!electron || !isConnected) return;

@@ -155,7 +155,7 @@ ipcMain.handle("get-voltage", async (event, nodeId) => {
 		serialPort.flush();
 		await delay(50);
 
-		const data = `v ${nodeId}\n`;
+		const data = `v ${nodeId}\r\n`;
 
 		await new Promise((resolve, reject) => {
 			serialPort.write(data, (error) => {

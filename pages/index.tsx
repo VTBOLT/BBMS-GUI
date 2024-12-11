@@ -46,7 +46,7 @@ const BMSFrontend = () => {
 	} = usePortConnection();
 
 	const { deviceId, setDeviceId, allNodeData, terminalOutput, sendCommand } =
-		useNodeData(isConnected);
+		useNodeData(isConnected, numNodes);
 
 	const handleRawCommand = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
