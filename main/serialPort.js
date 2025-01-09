@@ -36,18 +36,18 @@ export async function sendCommand(command, nodeId) {
 	serialPort.flush();
 	await delay(50);
 
-	await new Promise((resolve, reject) => {
-		serialPort.write(`${command} ${nodeId}\n`, (error) => {
-			if (error) reject(error);
+	await new Promise((resolve) => {
+		serialPort.write(`${command} ${nodeId}\n`, () => {
+			resolve();
 		});
-		serialPort.drain(() => resolve());
+		// serialPort.drain(() => resolve());
 	});
 
 	const lines = await readUntilDone();
-	return processResponse(lines);
+	return processResponse(lines, command);
 }
 
-async function readUntilDone(timeout = 100) {
+async function readUntilDone(timeout = 500) {
 	let buffer = "";
 	let startFound = false;
 
@@ -91,20 +91,19 @@ async function readUntilDone(timeout = 100) {
 	}
 }
 
-function processResponse(lines) {
+function processResponse(lines, type) {
 	let formattedLines = [];
 
 	for (const line of lines) {
 		if (line.includes(",")) {
-			const value = line.split(",")[1];
-			if (value.length !== 7 && parseFloat(value) !== 0.0) {
-				return {
-					success: false,
-					message: "Data not sent :(",
-					output: formattedLines,
-				};
+			if (type == "v") {
+				const value = line.split(",")[1];
+				formattedLines.push(value);
+			} else if (type == "t") {
+				formattedLines = line.split(",");
+			} else {
+				formattedLines.push(line);
 			}
-			formattedLines.push(value);
 		}
 	}
 

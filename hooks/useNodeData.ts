@@ -110,13 +110,13 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 		try {
 			for (let i = 1; i <= numNodes; i++) {
 				setIsFetching(true);
-				const voltages = await sendCommand("v", i);
+				let voltages = await sendCommand("v", i);
 				if (voltages === "FAIL") {
 					console.error("Failed to fetch voltages");
 					return;
 				}
 
-				const temps = await sendCommand("t", i);
+				let temps = await sendCommand("t", i);
 				if (temps === "FAIL") {
 					console.error("Failed to fetch temperatures");
 					return;
@@ -124,7 +124,8 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 
 				if (voltages.includes("nan") || temps.includes("nan")) {
 					console.error("NAN in data");
-					return;
+					temps = temps.replaceAll("nan", "0");
+					voltages = voltages.replaceAll("nan", "0");
 				}
 
 				try {
