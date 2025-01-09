@@ -94,7 +94,10 @@ const BMSFrontend = () => {
 				</Alert>
 			)}
 
-			<div className="flex items-center gap-4 mb-4">
+			<div className="flex items-center gap-4 m-4">
+				<span className="text-xs text-gray-500 dark:text-gray-400">
+					Number of BMS nodes in system:
+				</span>
 				<div className="flex items-center gap-4">
 					<div className="flex flex-col gap-1">
 						<Input
@@ -107,9 +110,6 @@ const BMSFrontend = () => {
 							min={1}
 							placeholder="# of nodes"
 						/>
-						<span className="text-xs text-gray-500 dark:text-gray-400">
-							Number of BMS nodes in system
-						</span>
 					</div>
 					<Button onClick={() => sendCommand("a", numNodes)}>
 						Start Addressing
@@ -117,8 +117,11 @@ const BMSFrontend = () => {
 				</div>
 			</div>
 
-			<Tabs defaultValue="overview">
-				<TabsList className="justify-self-center">
+			<Tabs
+				defaultValue="overview"
+				className="flex flex-col items-center"
+			>
+				<TabsList className="mx-auto">
 					<TabsTrigger value="overview">
 						<Activity className="mr-2 h-4 w-4" />
 						Overview
@@ -158,15 +161,17 @@ const BMSFrontend = () => {
 				</TabsContent>
 
 				<TabsContent value="diagnostics" className="mt-4">
-					{allNodeData.map((data) => {
-						return (
-							<DiagnosticDisplay
-								key={data.nodeId}
-								diagnostics={data.diagnostic}
-								nodeNum={data.nodeId}
-							/>
-						);
-					})}
+					<div>
+						{allNodeData.map((data) => {
+							return (
+								<DiagnosticDisplay
+									key={data.nodeId}
+									diagnostics={data.diagnostic}
+									nodeNum={data.nodeId}
+								/>
+							);
+						})}
+					</div>
 				</TabsContent>
 
 				<TabsContent value="temp-summary" className="mt-4">
