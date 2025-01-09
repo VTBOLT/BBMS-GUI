@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-interface SettingsTabProps {
+interface OtherTabProps {
 	deviceId: number;
 	sendCommand: (
 		command: string,
@@ -10,11 +10,11 @@ interface SettingsTabProps {
 	) => Promise<string>;
 }
 
-const SettingsTab: React.FC<SettingsTabProps> = ({ deviceId, sendCommand }) => {
+const OtherTab: React.FC<OtherTabProps> = ({ deviceId, sendCommand }) => {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>System Settings</CardTitle>
+				<CardTitle>Other Options</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className="grid gap-4">
@@ -33,4 +33,4 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ deviceId, sendCommand }) => {
 	);
 };
 
-export default SettingsTab;
+export default OtherTab;

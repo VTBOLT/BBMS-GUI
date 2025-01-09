@@ -21,7 +21,7 @@ import VoltageSummaryTab from "@/components/VoltageSummaryTab";
 import TemperatureSummaryTab from "@/components/TemperatureSummaryTab";
 import CellBalancingTab from "@/components/CellBalancingTab";
 import TerminalTab from "@/components/TerminalTab";
-import SettingsTab from "@/components/SettingsTab";
+import OtherTab from "@/components/OtherTab";
 import { usePortConnection } from "@/hooks/usePortConnection";
 import { useNodeData } from "@/hooks/useNodeData";
 
@@ -143,9 +143,9 @@ const BMSFrontend = () => {
 						<Terminal className="mr-2 h-4 w-4" />
 						Terminal
 					</TabsTrigger>
-					<TabsTrigger value="settings">
+					<TabsTrigger value="other">
 						<Settings className="mr-2 h-4 w-4" />
-						Settings
+						Other
 					</TabsTrigger>
 				</TabsList>
 
@@ -192,11 +192,8 @@ const BMSFrontend = () => {
 					/>
 				</TabsContent>
 
-				<TabsContent value="settings" className="mt-4">
-					<SettingsTab
-						deviceId={deviceId}
-						sendCommand={sendCommand}
-					/>
+				<TabsContent value="other" className="mt-4">
+					<OtherTab deviceId={deviceId} sendCommand={sendCommand} />
 				</TabsContent>
 			</Tabs>
 		</div>
