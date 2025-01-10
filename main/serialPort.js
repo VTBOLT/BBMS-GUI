@@ -37,10 +37,14 @@ export async function sendCommand(command, nodeId) {
 	await delay(50);
 
 	await new Promise((resolve) => {
-		serialPort.write(`${command} ${nodeId}\n`, () => {
-			resolve();
+		serialPort.write(`${command} ${nodeId}\n`, (error) => {
+			if (error) {
+				console.error("Serial port writing error:", error);
+				serialPort.flush();
+				throw error;
+			}
 		});
-		// serialPort.drain(() => resolve());
+		serialPort.drain(() => resolve());
 	});
 
 	const lines = await readUntilDone();
