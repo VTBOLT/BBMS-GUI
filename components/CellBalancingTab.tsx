@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Battery, BatteryCharging } from "lucide-react";
+import { NodeData } from "@/types";
 
 interface CellBalancingTabProps {
 	numNodes: number;
 	balancingTime: number;
 	setBalancingTime: (time: number) => void;
 	sendCommand: (command: string, ...args: number[]) => Promise<string>;
+	allNodeData: NodeData[];
 }
 
 const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
@@ -17,10 +19,20 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 	balancingTime,
 	setBalancingTime,
 	sendCommand,
+	allNodeData,
 }) => {
 	const [isCharging, setIsCharging] = useState(false);
 	const [isBalancing, setIsBalancing] = useState(false);
 	const [status, setStatus] = useState<string | null>(null);
+	const [logs, setLogs] = useState<[number[], number[]][][]>([]);
+
+	useEffect(() => {
+		if (isBalancing) {
+			logs.push(allNodeData.map((data) => [data.voltages, data.temps]));
+		} else {
+			setLogs([]);
+		}
+	}, [allNodeData, isBalancing]);
 
 	const startCharging = async () => {
 		try {
@@ -47,9 +59,14 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 			for (let i = 1; i <= numNodes; i++) {
 				await sendCommand("b", i, balancingTime);
 			}
-			await sendCommand("b", balancingTime);
 			setIsBalancing(true);
 			setStatus("Balancing started for all devices");
+
+			setTimeout(() => {
+				console.log(logs);
+				setIsBalancing(false);
+				setStatus("Balancing completed for all devices");
+			}, balancingTime * 1000);
 		} catch (error) {
 			setStatus("Failed to start balancing: " + error);
 		}

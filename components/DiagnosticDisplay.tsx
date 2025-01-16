@@ -221,8 +221,8 @@ export type BurstData = {
 	};
 };
 
-function decodeBurstData(data: string): BurstData {
-	const pairs = data.split(",").filter((s) => s.trim()); // Split on commas and remove empty strings
+function decodeBurstData(data: string[]): BurstData {
+	const pairs = data.filter((s) => s.trim()); // Split on commas and remove empty strings
 	const result: BurstData = {
 		Frame1: {
 			wu_cyc_wup: false,
@@ -487,7 +487,7 @@ function decodeBurstData(data: string): BurstData {
 }
 
 interface DiagnosticDisplayProps {
-	diagnostics: string;
+	diagnostics: string[];
 	nodeNum: number;
 }
 
@@ -495,7 +495,7 @@ const DiagnosticDisplay: React.FC<DiagnosticDisplayProps> = ({
 	diagnostics,
 	nodeNum,
 }) => {
-	const parseDiagnostics = (data: string): BurstData => {
+	const parseDiagnostics = (data: string[]): BurstData => {
 		const result = decodeBurstData(data);
 
 		return result;

@@ -60,3 +60,12 @@ ipcMain.handle("get-diagnostics", async (_, nodeId) => {
 		throw error;
 	}
 });
+
+ipcMain.handle("start-balancing", async (_, nodeId) => {
+	try {
+		return await sendCommand("b", nodeId);
+	} catch (error) {
+		console.error("Error starting balancing:", error);
+		throw error;
+	}
+});

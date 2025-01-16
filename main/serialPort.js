@@ -51,7 +51,7 @@ export async function sendCommand(command, nodeId) {
 	return processResponse(lines, command);
 }
 
-async function readUntilDone(timeout = 500) {
+async function readUntilDone(timeout = 750) {
 	let buffer = "";
 	let startFound = false;
 
@@ -103,10 +103,8 @@ function processResponse(lines, type) {
 			if (type == "v") {
 				const value = line.split(",")[1];
 				formattedLines.push(value);
-			} else if (type == "t") {
-				formattedLines = line.split(",");
 			} else {
-				formattedLines.push(line);
+				formattedLines = line.split(",");
 			}
 		}
 	}

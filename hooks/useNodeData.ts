@@ -79,6 +79,30 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 							const { success, message, output } =
 								await electron.getDiagnostics(nodeId);
 							if (success) {
+								let retVal = "";
+								output.forEach((element) => {
+									retVal += '"' + element + '",';
+								});
+								retVal = retVal.slice(0, -1); // Get rid of trailing comma
+								return retVal;
+							} else {
+								console.log(message);
+								return "FAIL";
+							}
+						} catch (err) {
+							console.error(err);
+							return "FAIL";
+						}
+					}
+				case "b":
+					if (!electron) {
+						console.log("No electron :(");
+						return "FAIL";
+					} else {
+						try {
+							const { success, message, output } =
+								await electron.startBalancing(nodeId);
+							if (success) {
 								return output.toString();
 							} else {
 								console.log(message);
@@ -104,7 +128,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 			nodeId: number;
 			voltages: number[];
 			temps: number[];
-			diagnostic: string;
+			diagnostic: string[];
 		}[] = [];
 
 		try {
@@ -122,10 +146,17 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 					return;
 				}
 
+				let diagnostic = await sendCommand("d", i);
+				if (diagnostic === "FAIL") {
+					console.error("Failed to fetch diagnostics");
+					return;
+				}
+
 				if (voltages.includes("nan") || temps.includes("nan")) {
 					console.error("NAN in data");
 					temps = temps.replaceAll("nan", "0");
 					voltages = voltages.replaceAll("nan", "0");
+					diagnostic = diagnostic.replaceAll("nan", "0");
 				}
 
 				try {
@@ -133,7 +164,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 						nodeId: i,
 						voltages: JSON.parse(`[${voltages}]`),
 						temps: JSON.parse(`[${temps}]`),
-						diagnostic: "1,2,3,4",
+						diagnostic: JSON.parse(`[${diagnostic}]`),
 					});
 				} catch (parseErr) {
 					console.error("Failed to parse data:", parseErr);

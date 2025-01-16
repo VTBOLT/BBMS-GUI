@@ -186,6 +186,7 @@ const BMSFrontend = () => {
 						balancingTime={balancingTime}
 						setBalancingTime={setBalancingTime}
 						sendCommand={sendCommand}
+						allNodeData={allNodeData}
 					/>
 				</TabsContent>
 
