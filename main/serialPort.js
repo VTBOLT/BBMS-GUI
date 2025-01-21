@@ -99,7 +99,11 @@ function processResponse(lines, type) {
 	let formattedLines = [];
 
 	for (const line of lines) {
-		if (line.includes(",")) {
+		if (type == "r") {
+			if (line.includes("0x")) {
+				formattedLines.push(line);
+			}
+		} else if (line.includes(",")) {
 			if (type == "v") {
 				const value = line.split(",")[1];
 				formattedLines.push(value);

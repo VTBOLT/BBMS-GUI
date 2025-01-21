@@ -301,6 +301,62 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ allNodeData }) => {
                 </CardContent>
             </Card>
 
+            {/* BMIC Temperature Range */}
+            <Card>
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-base">
+                        BMIC Temperature Range
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex justify-between items-center">
+                        <div className="text-center">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                                Min
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                {Math.min(
+                                    ...allNodeData.map(node => node.bmicTemp)
+                                ).toFixed(1)}
+                                °C
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Node {allNodeData.find(node => 
+                                    node.bmicTemp === Math.min(...allNodeData.map(n => n.bmicTemp)))?.nodeId}
+                            </div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                                Avg
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                {(allNodeData.reduce((sum, node) => sum + node.bmicTemp, 0) / 
+                                    Math.max(allNodeData.length, 1)).toFixed(1)}
+                                °C
+                            </div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                                Max
+                            </div>
+                            <div className="text-2xl font-semibold">
+                                {Math.max(
+                                    ...allNodeData.map(node => node.bmicTemp)
+                                ).toFixed(1)}
+                                °C
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Node {allNodeData.find(node => 
+                                    node.bmicTemp === Math.max(...allNodeData.map(n => n.bmicTemp)))?.nodeId}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-[12px] text-gray-500 dark:text-gray-400 text-center mt-2">
+                        Across {allNodeData.length} BMIC Controllers
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* System Status Card */}
             <Card>
                 <CardHeader className="pb-2">

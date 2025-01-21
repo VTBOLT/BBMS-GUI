@@ -3,6 +3,7 @@ export interface NodeData {
 	voltages: number[];
 	temps: number[];
 	diagnostic: string[];
+	bmicTemp: number;
 }
 
 // Constants

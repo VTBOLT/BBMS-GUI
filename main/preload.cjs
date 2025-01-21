@@ -28,6 +28,10 @@ const handler = {
 	startBalancing: async (nodeId) => {
 		return ipcRenderer.invoke("start-balancing", nodeId);
 	},
+
+	readRegister: async (nodeId, register) => {
+		return ipcRenderer.invoke("read-register", nodeId, register);
+	},
 };
 
 console.log("preload.js: exposing handler to window.electron");

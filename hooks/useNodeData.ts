@@ -113,6 +113,26 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 							return "FAIL";
 						}
 					}
+				case "r":
+					if (!electron) {
+						console.log("No electron :(");
+						return "FAIL";
+					} else {
+						try {
+							const regToRead = args[1] as string;
+							const { success, message, output } =
+								await electron.readRegister(nodeId, regToRead);
+							if (success) {
+								return output.toString();
+							} else {
+								console.log(message);
+								return "FAIL";
+							}
+						} catch (err) {
+							console.error(err);
+							return "FAIL";
+						}
+					}
 				default:
 					setError("Invalid command");
 					return "";
@@ -124,12 +144,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 	const fetchAllNodesData = useCallback(async () => {
 		if (isFetching) return;
 
-		const newData: {
-			nodeId: number;
-			voltages: number[];
-			temps: number[];
-			diagnostic: string[];
-		}[] = [];
+		const newData: NodeData[] = [];
 
 		try {
 			for (let i = 1; i <= numNodes; i++) {
@@ -152,6 +167,18 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 					return;
 				}
 
+				const mainTempEncoded = await sendCommand("r", `${i}`, "0x3B");
+				console.log(mainTempEncoded);
+				// MainTempEncoded is a 8-bit 2's complement number
+				// Convert to decimal
+				let mainTemp = parseInt(mainTempEncoded, 16);
+				// Now un-twos complement it
+				mainTemp ^= 0xff;
+				mainTemp += 1;
+				mainTemp *= -1;
+				mainTemp *= 1.3828;
+				mainTemp += 99.733;
+
 				if (voltages.includes("nan") || temps.includes("nan")) {
 					console.error("NAN in data");
 					temps = temps.replaceAll("nan", "0");
@@ -165,6 +192,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 						voltages: JSON.parse(`[${voltages}]`),
 						temps: JSON.parse(`[${temps}]`),
 						diagnostic: JSON.parse(`[${diagnostic}]`),
+						bmicTemp: mainTemp,
 					});
 				} catch (parseErr) {
 					console.error("Failed to parse data:", parseErr);

@@ -77,16 +77,28 @@ const BMSFrontend = () => {
 			/>
 
 			<Card>
-				<CardHeader className="flex flex-row">
+				<CardHeader className="flex flex-row items-center">
 					<CardTitle className="text-2xl grow">
 						Brad BMS Manager
 					</CardTitle>
-					<button
-						className="justify-self-end"
-						onClick={() => setShowPortDialog(true)}
-					>
-						<Usb color={isConnected ? "green" : "red"} />
-					</button>
+					<div className="flex items-center gap-4">
+						<div className="flex items-center gap-2">
+							<Thermometer className="h-5 w-5 text-orange-500" />
+							<span className="text-sm font-medium">
+								{Math.max(
+									...allNodeData.map((node) => node.bmicTemp),
+									0
+								).toFixed(2)}
+								°C
+							</span>
+						</div>
+						<button
+							className="justify-self-end"
+							onClick={() => setShowPortDialog(true)}
+						>
+							<Usb color={isConnected ? "green" : "red"} />
+						</button>
+					</div>
 				</CardHeader>
 			</Card>
 

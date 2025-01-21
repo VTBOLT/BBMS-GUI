@@ -69,3 +69,12 @@ ipcMain.handle("start-balancing", async (_, nodeId) => {
 		throw error;
 	}
 });
+
+ipcMain.handle("read-register", async (_, nodeId, regAddr) => {
+	try {
+		return await sendCommand("r", `${nodeId} ${regAddr}`);
+	} catch (error) {
+		console.error("Error reading register:", error);
+		throw error;
+	}
+});

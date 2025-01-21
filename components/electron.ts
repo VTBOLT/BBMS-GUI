@@ -28,6 +28,14 @@ export type ElectronWindow = Window & {
 			message: string;
 			output: string[];
 		}>;
+		readRegister: (
+			nodeId: number,
+			register: string
+		) => Promise<{
+			success: boolean;
+			message: string;
+			output: string[];
+		}>;
 	};
 };
 
