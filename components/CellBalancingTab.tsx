@@ -56,9 +56,7 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 
 	const startBalancing = async () => {
 		try {
-			for (let i = 1; i <= numNodes; i++) {
-				await sendCommand("b", i, balancingTime);
-			}
+			await sendCommand("b", balancingTime);
 			setIsBalancing(true);
 			setStatus("Balancing started for all devices");
 

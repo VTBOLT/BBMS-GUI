@@ -23,11 +23,7 @@ export type ElectronWindow = Window & {
 			message: string;
 			output: string[];
 		}>;
-		startBalancing: (nodeId: number) => Promise<{
-			success: boolean;
-			message: string;
-			output: string[];
-		}>;
+		startBalancing: (balTime: number) => void;
 		readRegister: (
 			nodeId: number,
 			register: string

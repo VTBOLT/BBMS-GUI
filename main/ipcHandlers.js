@@ -4,6 +4,7 @@ import {
 	connectPort,
 	disconnectPort,
 	sendCommand,
+	justSendData,
 } from "./serialPort.js";
 
 ipcMain.handle("list-ports", async () => {
@@ -61,9 +62,10 @@ ipcMain.handle("get-diagnostics", async (_, nodeId) => {
 	}
 });
 
-ipcMain.handle("start-balancing", async (_, nodeId) => {
+ipcMain.handle("start-balancing", async (_, balTime) => {
 	try {
-		return await sendCommand("b", nodeId);
+		await justSendData(`b ${balTime}\n`);
+		return;
 	} catch (error) {
 		console.error("Error starting balancing:", error);
 		throw error;

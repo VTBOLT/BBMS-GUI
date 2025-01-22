@@ -60,7 +60,7 @@ async function readUntilDone(timeout = 750) {
 			() =>
 				reject(
 					new Error(
-						`Reading operation timed out with buffer: ${buffer}`
+						`Reading operation timed out with buffer: ${buffer} and startFound: ${startFound}`
 					)
 				),
 			timeout
@@ -119,4 +119,9 @@ function processResponse(lines, type) {
 			lines.length > 0 ? "Data sent successfully" : "Data not sent :(",
 		output: formattedLines,
 	};
+}
+
+export async function justSendData(data) {
+	await serialPort.write(data);
+	return;
 }

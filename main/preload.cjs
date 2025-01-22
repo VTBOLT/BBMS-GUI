@@ -25,8 +25,8 @@ const handler = {
 		return ipcRenderer.invoke("get-diagnostics", nodeId);
 	},
 
-	startBalancing: async (nodeId) => {
-		return ipcRenderer.invoke("start-balancing", nodeId);
+	startBalancing: async (balTime) => {
+		await ipcRenderer.invoke("start-balancing", balTime);
 	},
 
 	readRegister: async (nodeId, register) => {

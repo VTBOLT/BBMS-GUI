@@ -100,14 +100,9 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 						return "FAIL";
 					} else {
 						try {
-							const { success, message, output } =
-								await electron.startBalancing(nodeId);
-							if (success) {
-								return output.toString();
-							} else {
-								console.log(message);
-								return "FAIL";
-							}
+							await electron.startBalancing(nodeId);
+							console.log("Balancing started with time ", nodeId);
+							return "";
 						} catch (err) {
 							console.error(err);
 							return "FAIL";
@@ -168,7 +163,6 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 				}
 
 				const mainTempEncoded = await sendCommand("r", `${i}`, "0x3B");
-				console.log(mainTempEncoded);
 				// MainTempEncoded is a 8-bit 2's complement number
 				// Convert to decimal
 				let mainTemp = parseInt(mainTempEncoded, 16);
