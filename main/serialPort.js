@@ -123,5 +123,6 @@ function processResponse(lines, type) {
 
 export async function justSendData(data) {
 	await serialPort.write(data);
+	await serialPort.drain();
 	return;
 }

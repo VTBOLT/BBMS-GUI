@@ -7,24 +7,25 @@ import { Battery, BatteryCharging } from "lucide-react";
 import { NodeData } from "@/types";
 
 interface CellBalancingTabProps {
-	numNodes: number;
 	balancingTime: number;
 	setBalancingTime: (time: number) => void;
 	sendCommand: (command: string, ...args: number[]) => Promise<string>;
+	isFetching: boolean;
 	allNodeData: NodeData[];
 }
 
 const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
-	numNodes,
 	balancingTime,
 	setBalancingTime,
 	sendCommand,
+	isFetching,
 	allNodeData,
 }) => {
 	const [isCharging, setIsCharging] = useState(false);
 	const [isBalancing, setIsBalancing] = useState(false);
 	const [status, setStatus] = useState<string | null>(null);
 	const [logs, setLogs] = useState<[number[], number[]][][]>([]);
+	const [waitForOthers, setWaitForOthers] = useState<boolean>(false);
 
 	useEffect(() => {
 		if (isBalancing) {
@@ -32,7 +33,9 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 		} else {
 			setLogs([]);
 		}
-	}, [allNodeData, isBalancing]);
+
+		setWaitForOthers(isFetching);
+	}, [allNodeData, isBalancing, isFetching]);
 
 	const startCharging = async () => {
 		try {
@@ -55,6 +58,9 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 	};
 
 	const startBalancing = async () => {
+		while (waitForOthers) {
+			await new Promise((resolve) => setTimeout(resolve, 100));
+		}
 		try {
 			await sendCommand("b", balancingTime);
 			setIsBalancing(true);

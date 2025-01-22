@@ -45,10 +45,8 @@ const BMSFrontend = () => {
 		handleDisconnect,
 	} = usePortConnection();
 
-	const { deviceId, allNodeData, terminalOutput, sendCommand } = useNodeData(
-		isConnected,
-		numNodes
-	);
+	const { deviceId, allNodeData, terminalOutput, sendCommand, isFetching } =
+		useNodeData(isConnected, numNodes);
 
 	const handleRawCommand = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -194,10 +192,10 @@ const BMSFrontend = () => {
 
 				<TabsContent value="balancing" className="mt-4">
 					<CellBalancingTab
-						numNodes={numNodes}
 						balancingTime={balancingTime}
 						setBalancingTime={setBalancingTime}
 						sendCommand={sendCommand}
+						isFetching={isFetching}
 						allNodeData={allNodeData}
 					/>
 				</TabsContent>

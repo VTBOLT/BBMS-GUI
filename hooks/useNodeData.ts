@@ -221,6 +221,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 		setError,
 		terminalOutput,
 		setTerminalOutput,
+		isFetching,
 		sendCommand,
 	};
 };
