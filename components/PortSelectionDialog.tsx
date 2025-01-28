@@ -62,8 +62,7 @@ const PortSelectionDialog: React.FC<PortSelectionDialogProps> = ({
 									key={port.productId}
 									value={JSON.stringify(port)}
 								>
-									{port.productName} ({port.vendorId}:
-									{port.productId}/{port.path})
+									{port.productName} ({port.manufacturer})
 								</SelectItem>
 							))}
 						</SelectContent>
