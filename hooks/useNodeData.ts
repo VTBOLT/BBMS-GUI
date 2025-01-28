@@ -180,10 +180,6 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 					diagnostic = diagnostic.replaceAll("nan", "0");
 				}
 
-				console.log("Node", i, "Voltages:", voltages);
-				console.log("Node", i, "Temps:", temps);
-				console.log("Node", i, "Diagnostic:", diagnostic);
-
 				try {
 					newData.push({
 						nodeId: i,
