@@ -10,6 +10,7 @@
 		"start": "next start",
 		"lint": "next lint",
 		"rebuild": "electron-rebuild -f -w serialport",
+		"dev-real": "next dev",
 		"postinstall": "electron-builder install-app-deps"
 	},
 	"dependencies": {
@@ -29,7 +30,8 @@
 		"serialport": "^12.0.0",
 		"shadcn": "^2.1.6",
 		"tailwind-merge": "^2.5.5",
-		"tailwindcss-animate": "^1.0.7"
+		"tailwindcss-animate": "^1.0.7",
+		"usb": "^2.14.0"
 	},
 	"devDependencies": {
 		"@types/node": "^20",

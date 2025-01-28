@@ -17,9 +17,9 @@ ipcMain.handle("list-ports", async () => {
 	}
 });
 
-ipcMain.handle("connect-port", async (_, path) => {
+ipcMain.handle("connect-port", async (_, portInfo) => {
 	try {
-		return await connectPort(path);
+		return await connectPort(portInfo);
 	} catch (error) {
 		console.error("Error connecting to port:", error);
 		throw error;

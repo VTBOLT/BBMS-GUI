@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.yourcompany.driver.usbcdc.block</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>USBCDCBlocker</string>
+    <key>CFBundlePackageType</key>
+    <string>KEXT</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>IOKitPersonalities</key>
+    <dict>
+        <key>CDC Block Driver</key>
+        <dict>
+            <key>CFBundleIdentifier</key>
+            <string>com.apple.driver.usb.cdc.acm</string>
+            <key>IOClass</key>
+            <string>com_apple_driver_usb_cdc_acm</string>
+            <key>IOProviderClass</key>
+            <string>IOUSBInterface</string>
+            <key>bConfigurationValue</key>
+            <integer>1</integer>
+            <key>bInterfaceClass</key>
+            <integer>2</integer>
+            <key>bInterfaceSubClass</key>
+            <integer>2</integer>
+            <key>idProduct</key>
+            <integer>22336</integer>
+            <key>idVendor</key>
+            <integer>1155</integer>
+        </dict>
+    </dict>
+    <key>OSBundleRequired</key>
+    <string>Root</string>
+</dict>
+</plist>

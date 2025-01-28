@@ -5,7 +5,7 @@ export type ElectronWindow = Window & {
 	electron: {
 		listPorts: () => Promise<{ ports: port[] }>;
 		connect: (
-			path: string
+			portInfo: port
 		) => Promise<{ success: boolean; message: string }>;
 		disconnect: () => Promise<{ success: boolean; message: string }>;
 		getVoltage: (nodeId: number) => Promise<{

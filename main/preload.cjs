@@ -5,8 +5,8 @@ const handler = {
 		return ipcRenderer.invoke("list-ports");
 	},
 
-	connect: async (path) => {
-		return ipcRenderer.invoke("connect-port", path);
+	connect: async (portInfo) => {
+		return ipcRenderer.invoke("connect-port", portInfo);
 	},
 
 	disconnect: async (path) => {
