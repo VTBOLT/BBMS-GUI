@@ -9,7 +9,6 @@
 		"build": "next build && electron-builder",
 		"start": "next start",
 		"lint": "next lint",
-		"rebuild": "electron-rebuild -f -w serialport",
 		"dev-real": "next dev",
 		"postinstall": "electron-builder install-app-deps"
 	},
@@ -18,7 +17,6 @@
 		"@radix-ui/react-select": "^2.1.2",
 		"@radix-ui/react-slot": "^1.1.0",
 		"@radix-ui/react-tabs": "^1.1.1",
-		"@serialport/bindings-cpp": "^12.0.1",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"debug": "^4.3.7",
@@ -27,7 +25,6 @@
 		"next": "15.0.3",
 		"react": "19.0.0-rc-66855b96-20241106",
 		"react-dom": "19.0.0-rc-66855b96-20241106",
-		"serialport": "^12.0.0",
 		"shadcn": "^2.1.6",
 		"tailwind-merge": "^2.5.5",
 		"tailwindcss-animate": "^1.0.7",

@@ -13,11 +13,12 @@ files:
     - out/*
     - main/main.js
     - main/preload.cjs
+    - main/ipcHandlers.js
+    - main/serialPort.js
     - styles/*
     - package.json
     # - "!**/node_modules/**"
-    - "node_modules/@serialport/**/*"
-    - "node_modules/serialport/**/*"
+    - "node_modules/usb/**/*"
 
 # Windows configuration
 win:
