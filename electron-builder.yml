@@ -48,7 +48,7 @@ mac:
               - x64
               - arm64
     category: public.app-category.productivity
-    icon: resources/icon.icns
+    icon: resources/icon.png
     hardenedRuntime: true
     gatekeeperAssess: false
 
