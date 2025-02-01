@@ -4,6 +4,7 @@ export interface NodeData {
 	temps: number[];
 	diagnostic: string[];
 	bmicTemp: number;
+	errors: string[];
 }
 
 // Constants

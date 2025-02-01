@@ -32,6 +32,11 @@ export type ElectronWindow = Window & {
 			message: string;
 			output: string[];
 		}>;
+		getErrors: (nodeId: number) => Promise<{
+			success: boolean;
+			message: string;
+			output: string[];
+		}>;
 	};
 };
 

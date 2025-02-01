@@ -32,6 +32,10 @@ const handler = {
 	readRegister: async (nodeId, register) => {
 		return ipcRenderer.invoke("read-register", nodeId, register);
 	},
+
+	getErrors: async (nodeId) => {
+		return ipcRenderer.invoke("get-errors", nodeId);
+	},
 };
 
 console.log("preload.js: exposing handler to window.electron");

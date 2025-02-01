@@ -128,6 +128,20 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 							return "FAIL";
 						}
 					}
+				case "z":
+					if (!electron) {
+						console.log("No electron :(");
+						return "FAIL";
+					} else {
+						try {
+							return (
+								await electron.getErrors(nodeId)
+							).output.toString();
+						} catch (err) {
+							console.error(err);
+							return "FAIL";
+						}
+					}
 				default:
 					setError("Invalid command");
 					return "";
@@ -180,12 +194,15 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 					diagnostic = diagnostic.replaceAll("nan", "0");
 				}
 
+				const errors = await sendCommand("z", i);
+
 				try {
 					newData.push({
 						nodeId: i,
 						voltages: JSON.parse(`[${voltages}]`),
 						temps: JSON.parse(`[${temps}]`),
 						diagnostic: JSON.parse(`[${diagnostic}]`),
+						errors: JSON.parse(`[${errors}]`),
 						bmicTemp: mainTemp,
 					});
 				} catch (parseErr) {

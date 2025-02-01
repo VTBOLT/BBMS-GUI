@@ -80,3 +80,12 @@ ipcMain.handle("read-register", async (_, nodeId, regAddr) => {
 		throw error;
 	}
 });
+
+ipcMain.handle("get-errors", async (_, nodeId) => {
+	try {
+		return await sendCommand("z", nodeId);
+	} catch (error) {
+		console.error("Error getting errors:", error);
+		throw error;
+	}
+});
