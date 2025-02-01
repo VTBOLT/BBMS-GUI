@@ -7,7 +7,7 @@ import {
 	Usb,
 	AlertTriangle,
 } from "lucide-react";
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,23 @@ const BMSFrontend = () => {
 
 	const { deviceId, allNodeData, terminalOutput, sendCommand, isFetching } =
 		useNodeData(isConnected, numNodes);
+
+	const [bmsError, setBmsError] = useState<string>("");
+
+	useEffect(() => {
+		let isError: boolean = false;
+		for (const node of allNodeData) {
+			if (node.errors.length > 0) {
+				setBmsError(bmsError + node.errors.toString());
+				isError = true;
+				break;
+			}
+		}
+
+		if (!isError) {
+			setBmsError("");
+		}
+	}, [allNodeData, bmsError]);
 
 	const handleRawCommand = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -103,6 +120,12 @@ const BMSFrontend = () => {
 			{error && (
 				<Alert variant="destructive" className="mb-4">
 					<AlertDescription>{error}</AlertDescription>
+				</Alert>
+			)}
+
+			{bmsError && (
+				<Alert variant="destructive" className="mb-4">
+					<AlertDescription>{bmsError}</AlertDescription>
 				</Alert>
 			)}
 
