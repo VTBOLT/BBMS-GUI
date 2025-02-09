@@ -31,7 +31,7 @@ const BMSFrontend = () => {
 	const electron = useElectron();
 	const [balancingTime, setBalancingTime] = useState<number>(60);
 	const [rawCommand, setRawCommand] = useState<string>("");
-	const [numNodes, setNumNodes] = useState<number>(1);
+	const [numNodes, setNumNodes] = useState<number>(2);
 
 	const [isCharging, setIsCharging] = useState(false);
 	const [isBalancing, setIsBalancing] = useState(false);

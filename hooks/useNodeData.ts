@@ -175,28 +175,45 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 			for (let i = 1; i <= numNodes; i++) {
 				setIsFetching(true);
 
+				const stepStart = Date.now();
+
 				let voltages = await sendCommand("v", i);
 				if (voltages === "FAIL") {
 					console.error("Failed to fetch voltages");
 					return;
 				}
+				console.log(`Fetch voltages time: ${Date.now() - stepStart}ms`);
 
+				const tempsStart = Date.now();
 				let temps = await sendCommand("t", i);
 				if (temps === "FAIL") {
 					console.error("Failed to fetch temperatures");
 					return;
 				}
+				console.log(
+					`Fetch temperatures time: ${Date.now() - tempsStart}ms`
+				);
 
+				const diagnosticStart = Date.now();
 				let diagnostic = await sendCommand("d", i);
 				if (diagnostic === "FAIL") {
 					console.error("Failed to fetch diagnostics");
 					return;
 				}
+				console.log(
+					`Fetch diagnostics time: ${Date.now() - diagnosticStart}ms`
+				);
 
+				const mainTempStart = Date.now();
 				const mainTempEncoded = await sendCommand("o", i);
 				// MainTempEncoded is a 8-bit 2's complement number
 				// Convert to decimal
 				let mainTemp = parseInt(mainTempEncoded, 16);
+				console.log(
+					`Fetch main temperature time: ${
+						Date.now() - mainTempStart
+					}ms`
+				);
 				// Now un-twos complement it
 				mainTemp ^= 0xff;
 				mainTemp += 1;

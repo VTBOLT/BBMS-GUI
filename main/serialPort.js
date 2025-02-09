@@ -129,10 +129,7 @@ class USBConnection {
 		try {
 			const encoder = new TextEncoder();
 			const data = encoder.encode(`${command} ${nodeId}\n`);
-			await this.device.transferOut(
-				this.endpointOut.endpointNumber,
-				data
-			);
+			this.device.transferOut(this.endpointOut.endpointNumber, data);
 
 			const response = await this.readResponse();
 
@@ -176,6 +173,10 @@ class USBConnection {
 				if (completeLines.length > 0) {
 					lines.push(...completeLines);
 				}
+			} else {
+				console.log("No data received");
+				console.log(result);
+				this.delay(10);
 			}
 		}
 
