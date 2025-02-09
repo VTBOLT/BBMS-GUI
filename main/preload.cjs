@@ -36,6 +36,10 @@ const handler = {
 	getErrors: async (nodeId) => {
 		return ipcRenderer.invoke("get-errors", nodeId);
 	},
+
+	sendGenericCommand: async (cmd, nodeId) => {
+		return ipcRenderer.invoke("send-generic-cmd", cmd, nodeId);
+	},
 };
 
 console.log("preload.js: exposing handler to window.electron");

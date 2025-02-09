@@ -133,9 +133,9 @@ class USBConnection {
 				this.endpointOut.endpointNumber,
 				data
 			);
-			await this.delay(50);
 
 			const response = await this.readResponse();
+
 			return this.processResponse(response, command);
 		} catch (error) {
 			console.error("Communication error:", error);
@@ -177,8 +177,6 @@ class USBConnection {
 					lines.push(...completeLines);
 				}
 			}
-
-			await this.delay(10);
 		}
 
 		return lines;
@@ -188,7 +186,7 @@ class USBConnection {
 		let formattedLines = [];
 
 		for (const line of lines) {
-			if (type === "r") {
+			if (type === "r" || type === "o") {
 				if (line.includes("0x")) {
 					formattedLines.push(line);
 				}

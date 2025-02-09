@@ -37,6 +37,14 @@ export type ElectronWindow = Window & {
 			message: string;
 			output: string[];
 		}>;
+		sendGenericCommand: (
+			command: string,
+			nodeId: number
+		) => Promise<{
+			success: boolean;
+			message: string;
+			output: string[];
+		}>;
 	};
 };
 

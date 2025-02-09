@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,14 @@ interface CellBalancingTabProps {
 	sendCommand: (command: string, ...args: number[]) => Promise<string>;
 	isFetching: boolean;
 	allNodeData: NodeData[];
+	isCharging: boolean;
+	setIsCharging: (isCharging: boolean) => void;
+	isBalancing: boolean;
+	setIsBalancing: (isBalancing: boolean) => void;
+	balancingStatus: string | null;
+	setBalancingStatus: (status: string | null) => void;
+	balancingLogs: [number[], number[]][][];
+	setBalancingLogs: (logs: [number[], number[]][][]) => void;
 }
 
 const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
@@ -20,30 +28,32 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 	sendCommand,
 	isFetching,
 	allNodeData,
+	isCharging,
+	setIsCharging,
+	isBalancing,
+	setIsBalancing,
+	balancingStatus,
+	setBalancingStatus,
+	balancingLogs,
+	setBalancingLogs,
 }) => {
-	const [isCharging, setIsCharging] = useState(false);
-	const [isBalancing, setIsBalancing] = useState(false);
-	const [status, setStatus] = useState<string | null>(null);
-	const [logs, setLogs] = useState<[number[], number[]][][]>([]);
-	const [waitForOthers, setWaitForOthers] = useState<boolean>(false);
-
 	useEffect(() => {
 		if (isBalancing) {
-			logs.push(allNodeData.map((data) => [data.voltages, data.temps]));
+			balancingLogs.push(
+				allNodeData.map((data) => [data.voltages, data.temps])
+			);
 		} else {
-			setLogs([]);
+			setBalancingLogs([]);
 		}
-
-		setWaitForOthers(isFetching);
 	}, [allNodeData, isBalancing, isFetching]);
 
 	const startCharging = async () => {
 		try {
 			await sendCommand("s 1");
 			setIsCharging(true);
-			setStatus("Charging started for all devices");
+			setBalancingStatus("Charging started for all devices");
 		} catch (error) {
-			setStatus("Failed to start charging: " + error);
+			setBalancingStatus("Failed to start charging: " + error);
 		}
 	};
 
@@ -51,28 +61,25 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 		try {
 			await sendCommand("s 0");
 			setIsCharging(false);
-			setStatus("Charging stopped for all devices");
+			setBalancingStatus("Charging stopped for all devices");
 		} catch (error) {
-			setStatus("Failed to stop charging: " + error);
+			setBalancingStatus("Failed to stop charging: " + error);
 		}
 	};
 
 	const startBalancing = async () => {
-		while (waitForOthers) {
-			await new Promise((resolve) => setTimeout(resolve, 100));
-		}
 		try {
-			await sendCommand("b", balancingTime);
 			setIsBalancing(true);
-			setStatus("Balancing started for all devices");
+			setBalancingStatus("Balancing started for all devices");
+			await sendCommand("b", balancingTime);
 
 			setTimeout(() => {
-				console.log(logs);
+				console.log(balancingLogs);
 				setIsBalancing(false);
-				setStatus("Balancing completed for all devices");
+				setBalancingStatus("Balancing completed for all devices");
 			}, balancingTime * 1000);
 		} catch (error) {
-			setStatus("Failed to start balancing: " + error);
+			setBalancingStatus("Failed to start balancing: " + error);
 		}
 	};
 
@@ -80,9 +87,9 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 		try {
 			await sendCommand("x");
 			setIsBalancing(false);
-			setStatus("Balancing stopped for all devices");
+			setBalancingStatus("Balancing stopped for all devices");
 		} catch (error) {
-			setStatus("Failed to stop balancing: " + error);
+			setBalancingStatus("Failed to stop balancing: " + error);
 		}
 	};
 
@@ -118,9 +125,11 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 						) : (
 							<Battery className="text-gray-500" size={24} />
 						)}
-						{status && (
+						{balancingStatus && (
 							<Alert>
-								<AlertDescription>{status}</AlertDescription>
+								<AlertDescription>
+									{balancingStatus}
+								</AlertDescription>
 							</Alert>
 						)}
 					</div>

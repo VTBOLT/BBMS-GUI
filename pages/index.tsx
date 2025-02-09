@@ -33,6 +33,13 @@ const BMSFrontend = () => {
 	const [rawCommand, setRawCommand] = useState<string>("");
 	const [numNodes, setNumNodes] = useState<number>(1);
 
+	const [isCharging, setIsCharging] = useState(false);
+	const [isBalancing, setIsBalancing] = useState(false);
+	const [balancingStatus, setBalancingStatus] = useState<string | null>(null);
+	const [balancingLogs, setBalancingLogs] = useState<
+		[number[], number[]][][]
+	>([]);
+
 	const {
 		availablePorts,
 		selectedPort,
@@ -217,6 +224,14 @@ const BMSFrontend = () => {
 					<CellBalancingTab
 						balancingTime={balancingTime}
 						setBalancingTime={setBalancingTime}
+						isCharging={isCharging}
+						setIsCharging={setIsCharging}
+						isBalancing={isBalancing}
+						setIsBalancing={setIsBalancing}
+						balancingStatus={balancingStatus}
+						setBalancingStatus={setBalancingStatus}
+						balancingLogs={balancingLogs}
+						setBalancingLogs={setBalancingLogs}
 						sendCommand={sendCommand}
 						isFetching={isFetching}
 						allNodeData={allNodeData}

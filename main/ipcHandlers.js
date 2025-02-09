@@ -64,7 +64,7 @@ ipcMain.handle("get-diagnostics", async (_, nodeId) => {
 
 ipcMain.handle("start-balancing", async (_, balTime) => {
 	try {
-		await justSendData(`b ${balTime}\n`);
+		await sendCommand("b", balTime);
 		return;
 	} catch (error) {
 		console.error("Error starting balancing:", error);
@@ -86,6 +86,15 @@ ipcMain.handle("get-errors", async (_, nodeId) => {
 		return await sendCommand("z", nodeId);
 	} catch (error) {
 		console.error("Error getting errors:", error);
+		throw error;
+	}
+});
+
+ipcMain.handle("send-generic-cmd", async (_, cmd, nodeId) => {
+	try {
+		return await sendCommand(cmd, nodeId);
+	} catch (error) {
+		console.error("Error sending generic command:", error);
 		throw error;
 	}
 });

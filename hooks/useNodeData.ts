@@ -143,8 +143,22 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 						}
 					}
 				default:
-					setError("Invalid command");
-					return "";
+					if (!electron) {
+						console.log("No electron :(");
+						return "FAIL";
+					} else {
+						try {
+							return (
+								await electron.sendGenericCommand(
+									command,
+									nodeId
+								)
+							).output.toString();
+						} catch (err) {
+							console.error(err);
+							return "FAIL";
+						}
+					}
 			}
 		},
 		[electron, isConnected, error]
@@ -155,9 +169,12 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 
 		const newData: NodeData[] = [];
 
+		const startTime = Date.now();
+
 		try {
 			for (let i = 1; i <= numNodes; i++) {
 				setIsFetching(true);
+
 				let voltages = await sendCommand("v", i);
 				if (voltages === "FAIL") {
 					console.error("Failed to fetch voltages");
@@ -176,7 +193,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 					return;
 				}
 
-				const mainTempEncoded = await sendCommand("r", `${i}`, "0x3B");
+				const mainTempEncoded = await sendCommand("o", i);
 				// MainTempEncoded is a 8-bit 2's complement number
 				// Convert to decimal
 				let mainTemp = parseInt(mainTempEncoded, 16);
@@ -214,6 +231,8 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 			console.error("Error in fetchAllNodesData:", err);
 		} finally {
 			setIsFetching(false);
+			const endTime = Date.now();
+			console.log("Fetch time:", endTime - startTime);
 		}
 	}, [sendCommand, isFetching, numNodes]);
 
