@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,14 +19,16 @@ interface CellBalancingTabProps {
 	balancingStatus: string | null;
 	setBalancingStatus: (status: string | null) => void;
 	balancingLogs: [number[], number[]][][];
-	setBalancingLogs: (logs: [number[], number[]][][]) => void;
+	setBalancingLogs: React.Dispatch<
+		React.SetStateAction<[number[], number[]][][]>
+	>;
+	setIsFetching: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 	balancingTime,
 	setBalancingTime,
 	sendCommand,
-	isFetching,
 	allNodeData,
 	isCharging,
 	setIsCharging,
@@ -37,15 +39,25 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 	balancingLogs,
 	setBalancingLogs,
 }) => {
+	const logRef = useRef(balancingLogs);
 	useEffect(() => {
 		if (isBalancing) {
-			balancingLogs.push(
-				allNodeData.map((data) => [data.voltages, data.temps])
-			);
+			const newStuff: [number[], number[]][] = allNodeData.map((node) => [
+				node.voltages,
+				node.temps,
+			]);
+			setBalancingLogs((oldLogs: [number[], number[]][][]) => [
+				...oldLogs,
+				newStuff,
+			]);
 		} else {
 			setBalancingLogs([]);
 		}
-	}, [allNodeData, isBalancing, isFetching]);
+	}, [allNodeData, isBalancing, setBalancingLogs]);
+
+	useEffect(() => {
+		logRef.current = balancingLogs;
+	}, [balancingLogs]);
 
 	const startCharging = async () => {
 		try {
@@ -74,7 +86,8 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 			await sendCommand("b", balancingTime);
 
 			setTimeout(() => {
-				console.log(balancingLogs);
+				console.log(logRef.current); // Logs after state update
+				console.log(JSON.stringify(logRef.current));
 				setIsBalancing(false);
 				setBalancingStatus("Balancing completed for all devices");
 			}, balancingTime * 1000);

@@ -16,6 +16,7 @@ class USBConnection {
 		this.device = null;
 		this.endpointIn = null;
 		this.endpointOut = null;
+		this.busy = false;
 	}
 
 	async listPorts() {
@@ -126,10 +127,19 @@ class USBConnection {
 			throw new Error("Device not connected");
 		}
 
+		while (this.busy) {
+			await this.delay(5); // Wait for 50ms before checking again
+		}
+
+		this.busy = true;
+
 		try {
 			const encoder = new TextEncoder();
 			const data = encoder.encode(`${command} ${nodeId}\n`);
-			this.device.transferOut(this.endpointOut.endpointNumber, data);
+			await this.device.transferOut(
+				this.endpointOut.endpointNumber,
+				data
+			);
 
 			const response = await this.readResponse();
 
@@ -137,6 +147,8 @@ class USBConnection {
 		} catch (error) {
 			console.error("Communication error:", error);
 			throw error;
+		} finally {
+			this.busy = false;
 		}
 	}
 

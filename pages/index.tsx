@@ -31,7 +31,7 @@ const BMSFrontend = () => {
 	const electron = useElectron();
 	const [balancingTime, setBalancingTime] = useState<number>(60);
 	const [rawCommand, setRawCommand] = useState<string>("");
-	const [numNodes, setNumNodes] = useState<number>(2);
+	const [numNodes, setNumNodes] = useState<number>(1);
 
 	const [isCharging, setIsCharging] = useState(false);
 	const [isBalancing, setIsBalancing] = useState(false);
@@ -52,8 +52,14 @@ const BMSFrontend = () => {
 		handleDisconnect,
 	} = usePortConnection();
 
-	const { deviceId, allNodeData, terminalOutput, sendCommand, isFetching } =
-		useNodeData(isConnected, numNodes);
+	const {
+		deviceId,
+		allNodeData,
+		terminalOutput,
+		sendCommand,
+		isFetching,
+		setIsFetching,
+	} = useNodeData(isConnected, numNodes);
 
 	const [bmsError, setBmsError] = useState<string>("");
 
@@ -61,7 +67,9 @@ const BMSFrontend = () => {
 		let isError: boolean = false;
 		for (const node of allNodeData) {
 			if (node.errors.length > 0) {
-				setBmsError(bmsError + node.errors.toString());
+				setBmsError(
+					(currentError) => currentError + node.errors.toString()
+				);
 				isError = true;
 				break;
 			}
@@ -70,7 +78,7 @@ const BMSFrontend = () => {
 		if (!isError) {
 			setBmsError("");
 		}
-	}, [allNodeData, bmsError]);
+	}, [allNodeData, setBmsError]);
 
 	const handleRawCommand = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -235,6 +243,7 @@ const BMSFrontend = () => {
 						sendCommand={sendCommand}
 						isFetching={isFetching}
 						allNodeData={allNodeData}
+						setIsFetching={setIsFetching}
 					/>
 				</TabsContent>
 

@@ -168,52 +168,35 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 		if (isFetching) return;
 
 		const newData: NodeData[] = [];
-
-		const startTime = Date.now();
+		setIsFetching(true);
 
 		try {
 			for (let i = 1; i <= numNodes; i++) {
-				setIsFetching(true);
-
-				const stepStart = Date.now();
-
 				let voltages = await sendCommand("v", i);
 				if (voltages === "FAIL") {
 					console.error("Failed to fetch voltages");
+					setIsFetching(false);
 					return;
 				}
-				console.log(`Fetch voltages time: ${Date.now() - stepStart}ms`);
 
-				const tempsStart = Date.now();
 				let temps = await sendCommand("t", i);
 				if (temps === "FAIL") {
 					console.error("Failed to fetch temperatures");
+					setIsFetching(false);
 					return;
 				}
-				console.log(
-					`Fetch temperatures time: ${Date.now() - tempsStart}ms`
-				);
 
-				const diagnosticStart = Date.now();
 				let diagnostic = await sendCommand("d", i);
 				if (diagnostic === "FAIL") {
 					console.error("Failed to fetch diagnostics");
+					setIsFetching(false);
 					return;
 				}
-				console.log(
-					`Fetch diagnostics time: ${Date.now() - diagnosticStart}ms`
-				);
 
-				const mainTempStart = Date.now();
 				const mainTempEncoded = await sendCommand("o", i);
 				// MainTempEncoded is a 8-bit 2's complement number
 				// Convert to decimal
 				let mainTemp = parseInt(mainTempEncoded, 16);
-				console.log(
-					`Fetch main temperature time: ${
-						Date.now() - mainTempStart
-					}ms`
-				);
 				// Now un-twos complement it
 				mainTemp ^= 0xff;
 				mainTemp += 1;
@@ -241,6 +224,8 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 					});
 				} catch (parseErr) {
 					console.error("Failed to parse data:", parseErr);
+					setIsFetching(false);
+					return;
 				}
 			}
 			setAllNodeData(newData);
@@ -248,8 +233,6 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 			console.error("Error in fetchAllNodesData:", err);
 		} finally {
 			setIsFetching(false);
-			const endTime = Date.now();
-			console.log("Fetch time:", endTime - startTime);
 		}
 	}, [sendCommand, isFetching, numNodes]);
 
@@ -262,6 +245,9 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 		return () => {
 			if (intervalId) {
 				clearInterval(intervalId);
+				// setTimeout(() => {
+				// 	setIsFetching(false);
+				// }, 1000);
 			}
 		};
 	}, [fetchAllNodesData, electron, isConnected]);
@@ -276,5 +262,6 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 		setTerminalOutput,
 		isFetching,
 		sendCommand,
+		setIsFetching,
 	};
 };
