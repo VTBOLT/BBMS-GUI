@@ -23,8 +23,9 @@ function createWindow() {
 			.then(() => mainWindow.loadURL("app://-"))
 			.catch((error) => console.error("Error serving app:", error));
 	} else {
-		mainWindow.loadURL("http://localhost:3000");
+		mainWindow.loadURL("http://localhost:3000/");
 		mainWindow.webContents.openDevTools();
+		console.log("Going!");
 	}
 }
 
