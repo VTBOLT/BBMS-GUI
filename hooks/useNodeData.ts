@@ -219,7 +219,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 						voltages: JSON.parse(`[${voltages}]`),
 						temps: JSON.parse(`[${temps}]`),
 						diagnostic: JSON.parse(`[${diagnostic}]`),
-						errors: JSON.parse(`[${errors}]`),
+						errors: [errors],
 						bmicTemp: mainTemp,
 					});
 				} catch (parseErr) {
