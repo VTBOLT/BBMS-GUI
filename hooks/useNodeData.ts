@@ -9,6 +9,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 	const [isFetching, setIsFetching] = useState<boolean>(false);
 	const [error, setError] = useState<string>("");
 	const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
+	const [totalCurrent, setTotalCurrent] = useState<number>(0);
 
 	const sendCommand = useCallback(
 		async (
@@ -229,6 +230,17 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 				}
 			}
 			setAllNodeData(newData);
+
+			const current = await sendCommand("i");
+			if (current === "FAIL") {
+				console.error("Failed to fetch current");
+				return;
+			}
+			const currentValue = parseFloat(current);
+			if (!isNaN(currentValue)) {
+				setTotalCurrent(currentValue);
+				console.log("Current:", currentValue);
+			}
 		} catch (err) {
 			console.error("Error in fetchAllNodesData:", err);
 		} finally {
@@ -263,5 +275,6 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 		isFetching,
 		sendCommand,
 		setIsFetching,
+		totalCurrent,
 	};
 };

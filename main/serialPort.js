@@ -128,7 +128,7 @@ class USBConnection {
 		}
 
 		while (this.busy) {
-			await this.delay(5); // Wait for 50ms before checking again
+			await this.delay(1); // Wait for 1ms before checking again
 		}
 
 		this.busy = true;
@@ -186,9 +186,7 @@ class USBConnection {
 					lines.push(...completeLines);
 				}
 			} else {
-				console.log("No data received");
-				console.log(result);
-				this.delay(10);
+				this.delay(1);
 			}
 		}
 
@@ -210,6 +208,8 @@ class USBConnection {
 				} else {
 					formattedLines = line.split(",");
 				}
+			} else {
+				formattedLines.push(line.trim());
 			}
 		}
 

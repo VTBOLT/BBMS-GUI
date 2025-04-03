@@ -6,8 +6,10 @@ import {
 	Terminal,
 	Usb,
 	AlertTriangle,
+	Save,
+	Database,
 } from "lucide-react";
-import React, { useState, FormEvent, useEffect } from "react";
+import React, { useState, FormEvent, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,7 @@ import TerminalTab from "@/components/TerminalTab";
 import OtherTab from "@/components/OtherTab";
 import { usePortConnection } from "@/hooks/usePortConnection";
 import { useNodeData } from "@/hooks/useNodeData";
+import { fetchInterval, NodeData } from "@/types";
 
 // const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -39,6 +42,13 @@ const BMSFrontend = () => {
 	const [balancingLogs, setBalancingLogs] = useState<
 		[number[], number[]][][]
 	>([]);
+
+	// Logging
+	const [isLogging, setIsLogging] = useState<boolean>(false);
+	const [logData, setLogData] = useState<
+		Array<{ timestamp: number; nodes: NodeData[]; current: number }>
+	>([]);
+	const logIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
 	const {
 		availablePorts,
@@ -59,6 +69,7 @@ const BMSFrontend = () => {
 		sendCommand,
 		isFetching,
 		setIsFetching,
+		totalCurrent,
 	} = useNodeData(isConnected, numNodes);
 
 	const [bmsError, setBmsError] = useState<string>("");
@@ -89,6 +100,187 @@ const BMSFrontend = () => {
 		setRawCommand("");
 	};
 
+	// Add these functions to the BMSFrontend component
+	const startLogging = () => {
+		// Only start logging if we're connected and have data
+		if (!isConnected) {
+			setBmsError("Cannot start logging - not connected to BMS");
+			return;
+		}
+
+		if (allNodeData.length === 0) {
+			setBmsError("Cannot start logging - no data available");
+			return;
+		}
+
+		// Clear any previous errors
+		setBmsError("");
+
+		// Clear previous log data
+		setLogData([]);
+		setIsLogging(true);
+
+		// Add initial entry immediately
+		setLogData([
+			{
+				timestamp: Date.now(),
+				nodes: JSON.parse(JSON.stringify(allNodeData)), // Deep copy
+				current: totalCurrent,
+			},
+		]);
+
+		// Set up interval to collect data
+		logIntervalRef.current = setInterval(() => {
+			if (allNodeData.length > 0) {
+				setLogData((prevData) => [
+					...prevData,
+					{
+						timestamp: Date.now(),
+						nodes: JSON.parse(JSON.stringify(allNodeData)), // Deep copy
+						current: totalCurrent,
+					},
+				]);
+			}
+		}, 1000); // Log every second
+
+		// Log started notification
+		console.log("Logging started");
+		setBalancingStatus("Data logging started");
+
+		// Clear the status message after a few seconds
+		setTimeout(() => {
+			if (setBalancingStatus) {
+				setBalancingStatus((prev) =>
+					prev === "Data logging started" ? null : prev
+				);
+			}
+		}, 3000);
+	};
+
+	const stopLogging = async () => {
+		// Clear the interval
+		if (logIntervalRef.current) {
+			clearInterval(logIntervalRef.current);
+			logIntervalRef.current = null;
+		}
+
+		setIsLogging(false);
+
+		// Only attempt to save if we have data
+		if (logData.length > 0) {
+			try {
+				// Create metadata and format the log
+				const now = new Date();
+				const filename = `bms_log_${now
+					.toISOString()
+					.replace(/[:.]/g, "-")}.json`;
+
+				// Format the data with useful metadata
+				const logFileData = {
+					metadata: {
+						version: "1.0",
+						application: "Brad BMS Manager",
+						timestamp: now.toISOString(),
+						date: now.toLocaleDateString(),
+						time: now.toLocaleTimeString(),
+						numNodes: numNodes,
+						numEntries: logData.length,
+						startTime: new Date(logData[0].timestamp).toISOString(),
+						endTime: new Date(
+							logData[logData.length - 1].timestamp
+						).toISOString(),
+						duration:
+							(logData[logData.length - 1].timestamp -
+								logData[0].timestamp) /
+							1000,
+						samplingIntervalMs: fetchInterval, // We're logging every second
+						totalVoltageSummary: {
+							min: Math.min(
+								...logData.map((entry) =>
+									entry.nodes.reduce(
+										(total, node) =>
+											total +
+											node.voltages
+												.filter((v) => v > 0)
+												.reduce((sum, v) => sum + v, 0),
+										0
+									)
+								)
+							),
+							max: Math.max(
+								...logData.map((entry) =>
+									entry.nodes.reduce(
+										(total, node) =>
+											total +
+											node.voltages
+												.filter((v) => v > 0)
+												.reduce((sum, v) => sum + v, 0),
+										0
+									)
+								)
+							),
+						},
+						temperatureSummary: {
+							min: Math.min(
+								...logData.map((entry) =>
+									Math.min(
+										...entry.nodes.flatMap((node) =>
+											node.temps.filter((t) => t !== 0)
+										)
+									)
+								)
+							),
+							max: Math.max(
+								...logData.map((entry) =>
+									Math.max(
+										...entry.nodes.flatMap((node) =>
+											node.temps.filter((t) => t !== 0)
+										)
+									)
+								)
+							),
+						},
+					},
+					logEntries: logData,
+				};
+
+				const dataStr = JSON.stringify(logFileData, null, 2);
+
+				// Browser download fallback
+				const blob = new Blob([dataStr], { type: "application/json" });
+				const url = URL.createObjectURL(blob);
+
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = filename;
+				document.body.appendChild(link);
+				link.click();
+
+				// Clean up
+				setTimeout(() => {
+					URL.revokeObjectURL(url);
+					document.body.removeChild(link);
+				}, 100);
+
+				console.log(`Log saved with ${logData.length} entries`);
+			} catch (error) {
+				console.error("Failed to save log data:", error);
+				setBmsError(`Failed to save log: ${error}`);
+			}
+		} else {
+			console.log("No log data to save");
+			setBmsError("No log data to save");
+		}
+	};
+
+	useEffect(() => {
+		return () => {
+			if (logIntervalRef.current) {
+				clearInterval(logIntervalRef.current);
+			}
+		};
+	}, []);
+
 	if (!electron) {
 		return "loading...";
 	}
@@ -112,6 +304,33 @@ const BMSFrontend = () => {
 						Brad BMS Manager
 					</CardTitle>
 					<div className="flex items-center gap-4">
+						{/* Logging button */}
+						<div className="flex items-center gap-2">
+							<Button
+								variant={isLogging ? "destructive" : "outline"}
+								size="sm"
+								onClick={isLogging ? stopLogging : startLogging}
+								className="flex items-center gap-2"
+							>
+								{isLogging ? (
+									<>
+										<Save className="h-4 w-4" />
+										<span>Stop & Save Log</span>
+									</>
+								) : (
+									<>
+										<Database className="h-4 w-4" />
+										<span>Start Logging</span>
+									</>
+								)}
+							</Button>
+							{isLogging && (
+								<div className="text-xs px-2 py-1 rounded-full border border-gray-300 bg-green-100 dark:bg-green-900 dark:border-gray-700 flex items-center">
+									<span className="animate-pulse mr-1 h-2 w-2 rounded-full bg-green-500 inline-block"></span>
+									<span>{logData.length} entries</span>
+								</div>
+							)}
+						</div>
 						<div className="flex items-center gap-2">
 							<Thermometer className="h-5 w-5 text-orange-500" />
 							<span className="text-sm font-medium">
@@ -120,6 +339,15 @@ const BMSFrontend = () => {
 									0
 								).toFixed(2)}
 								°C
+							</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<Activity className="h-5 w-5 text-blue-500" />
+							<span className="text-sm font-medium">
+								{totalCurrent
+									? totalCurrent.toFixed(2)
+									: "0.00"}
+								A
 							</span>
 						</div>
 						<button
