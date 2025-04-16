@@ -89,7 +89,19 @@ const BMSFrontend = () => {
 		if (!isError) {
 			setBmsError("");
 		}
-	}, [allNodeData, setBmsError]);
+
+		// Logging
+		if (isLogging) {
+			setLogData((prevData) => [
+				...prevData,
+				{
+					timestamp: Date.now(),
+					nodes: JSON.parse(JSON.stringify(allNodeData)), // Deep copy
+					current: totalCurrent,
+				},
+			]);
+		}
+	}, [allNodeData, setBmsError, isLogging, totalCurrent]);
 
 	const handleRawCommand = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -128,20 +140,6 @@ const BMSFrontend = () => {
 				current: totalCurrent,
 			},
 		]);
-
-		// Set up interval to collect data
-		logIntervalRef.current = setInterval(() => {
-			if (allNodeData.length > 0) {
-				setLogData((prevData) => [
-					...prevData,
-					{
-						timestamp: Date.now(),
-						nodes: JSON.parse(JSON.stringify(allNodeData)), // Deep copy
-						current: totalCurrent,
-					},
-				]);
-			}
-		}, 1000); // Log every second
 
 		// Log started notification
 		console.log("Logging started");

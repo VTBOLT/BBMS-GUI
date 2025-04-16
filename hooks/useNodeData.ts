@@ -245,6 +245,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 			console.error("Error in fetchAllNodesData:", err);
 		} finally {
 			setIsFetching(false);
+			// Log here??
 		}
 	}, [sendCommand, isFetching, numNodes]);
 
