@@ -214,7 +214,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 						temps: JSON.parse(`[${temps}]`),
 						diagnostic: JSON.parse(`[${diagnostic}]`),
 						errors: [errors],
-						bmicTemp: mainTemp,
+						bmicTemp: parseFloat(mainTemp),
 					});
 				} catch (parseErr) {
 					console.error("Failed to parse data:", parseErr);

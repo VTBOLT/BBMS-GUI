@@ -1,7 +1,7 @@
 {
 	"name": "bms-gui",
 	"main": "main/main.js",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"private": true,
 	"type": "module",
 	"scripts": {
