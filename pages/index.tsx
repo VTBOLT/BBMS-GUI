@@ -34,7 +34,7 @@ const BMSFrontend = () => {
 	const electron = useElectron();
 	const [balancingTime, setBalancingTime] = useState<number>(60);
 	const [rawCommand, setRawCommand] = useState<string>("");
-	const [numNodes, setNumNodes] = useState<number>(13);
+	const [numNodes, setNumNodes] = useState<number>(1);
 
 	const [isCharging, setIsCharging] = useState(false);
 	const [isBalancing, setIsBalancing] = useState(false);
@@ -62,15 +62,8 @@ const BMSFrontend = () => {
 		handleDisconnect,
 	} = usePortConnection();
 
-	const {
-		deviceId,
-		allNodeData,
-		terminalOutput,
-		sendCommand,
-		isFetching,
-		setIsFetching,
-		totalCurrent,
-	} = useNodeData(isConnected, numNodes);
+	const { deviceId, allNodeData, terminalOutput, sendCommand, totalCurrent } =
+		useNodeData(isConnected, numNodes);
 
 	const [bmsError, setBmsError] = useState<string>("");
 
@@ -467,9 +460,7 @@ const BMSFrontend = () => {
 						balancingLogs={balancingLogs}
 						setBalancingLogs={setBalancingLogs}
 						sendCommand={sendCommand}
-						isFetching={isFetching}
 						allNodeData={allNodeData}
-						setIsFetching={setIsFetching}
 					/>
 				</TabsContent>
 

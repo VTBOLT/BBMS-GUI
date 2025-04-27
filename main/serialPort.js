@@ -197,7 +197,7 @@ class USBConnection {
 		let formattedLines = [];
 
 		for (const line of lines) {
-			if (type === "r" || type === "o") {
+			if (type === "r") {
 				if (line.includes("0x")) {
 					formattedLines.push(line);
 				}

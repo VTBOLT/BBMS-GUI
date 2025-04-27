@@ -10,7 +10,6 @@ interface CellBalancingTabProps {
 	balancingTime: number;
 	setBalancingTime: (time: number) => void;
 	sendCommand: (command: string, ...args: number[]) => Promise<string>;
-	isFetching: boolean;
 	allNodeData: NodeData[];
 	isCharging: boolean;
 	setIsCharging: (isCharging: boolean) => void;
@@ -22,7 +21,6 @@ interface CellBalancingTabProps {
 	setBalancingLogs: React.Dispatch<
 		React.SetStateAction<[number[], number[]][][]>
 	>;
-	setIsFetching: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const CellBalancingTab: React.FC<CellBalancingTabProps> = ({

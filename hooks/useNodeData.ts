@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { NodeData, fetchInterval } from "../types";
 import { useElectron } from "@/components/useElectron";
 
@@ -6,10 +6,11 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 	const electron = useElectron();
 	const [deviceId, setDeviceId] = useState<number>(1);
 	const [allNodeData, setAllNodeData] = useState<NodeData[]>([]);
-	const [isFetching, setIsFetching] = useState<boolean>(false);
 	const [error, setError] = useState<string>("");
 	const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
 	const [totalCurrent, setTotalCurrent] = useState<number>(0);
+
+	const isFetchingRef = useRef(false);
 
 	const sendCommand = useCallback(
 		async (
@@ -166,44 +167,36 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 	);
 
 	const fetchAllNodesData = useCallback(async () => {
-		if (isFetching) return;
+		if (isFetchingRef.current) return;
+
+		isFetchingRef.current = true; // lock
 
 		const newData: NodeData[] = [];
-		setIsFetching(true);
 
 		try {
 			for (let i = 1; i <= numNodes; i++) {
 				let voltages = await sendCommand("v", i);
 				if (voltages === "FAIL") {
 					console.error("Failed to fetch voltages");
-					setIsFetching(false);
+					isFetchingRef.current = false; // unlock
 					return;
 				}
 
 				let temps = await sendCommand("t", i);
 				if (temps === "FAIL") {
 					console.error("Failed to fetch temperatures");
-					setIsFetching(false);
+					isFetchingRef.current = false; // unlock
 					return;
 				}
 
 				let diagnostic = await sendCommand("d", i);
 				if (diagnostic === "FAIL") {
 					console.error("Failed to fetch diagnostics");
-					setIsFetching(false);
+					isFetchingRef.current = false; // unlock
 					return;
 				}
 
-				const mainTempEncoded = await sendCommand("o", i);
-				// MainTempEncoded is a 8-bit 2's complement number
-				// Convert to decimal
-				let mainTemp = parseInt(mainTempEncoded, 16);
-				// Now un-twos complement it
-				mainTemp ^= 0xff;
-				mainTemp += 1;
-				mainTemp *= -1;
-				mainTemp *= 1.3828;
-				mainTemp += 99.733;
+				const mainTemp = await sendCommand("o", i);
 
 				if (voltages.includes("nan") || temps.includes("nan")) {
 					console.error("NAN in data");
@@ -225,7 +218,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 					});
 				} catch (parseErr) {
 					console.error("Failed to parse data:", parseErr);
-					setIsFetching(false);
+					isFetchingRef.current = false; // unlock
 					return;
 				}
 			}
@@ -244,10 +237,9 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 		} catch (err) {
 			console.error("Error in fetchAllNodesData:", err);
 		} finally {
-			setIsFetching(false);
-			// Log here??
+			isFetchingRef.current = false; // unlock
 		}
-	}, [sendCommand, isFetching, numNodes]);
+	}, [sendCommand, numNodes]);
 
 	useEffect(() => {
 		if (!electron || !isConnected) return;
@@ -273,9 +265,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 		setError,
 		terminalOutput,
 		setTerminalOutput,
-		isFetching,
 		sendCommand,
-		setIsFetching,
 		totalCurrent,
 	};
 };
