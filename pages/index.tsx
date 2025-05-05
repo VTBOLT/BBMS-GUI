@@ -26,7 +26,7 @@ import TerminalTab from "@/components/TerminalTab";
 import OtherTab from "@/components/OtherTab";
 import { usePortConnection } from "@/hooks/usePortConnection";
 import { useNodeData } from "@/hooks/useNodeData";
-import { fetchInterval, NodeData } from "@/types";
+import { fetchInterval, NodeData, NUM_NODES } from "@/types";
 
 // const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -34,14 +34,11 @@ const BMSFrontend = () => {
 	const electron = useElectron();
 	const [balancingTime, setBalancingTime] = useState<number>(60);
 	const [rawCommand, setRawCommand] = useState<string>("");
-	const [numNodes, setNumNodes] = useState<number>(1);
+	const [numNodes, setNumNodes] = useState<number>(NUM_NODES);
 
 	const [isCharging, setIsCharging] = useState(false);
 	const [isBalancing, setIsBalancing] = useState(false);
 	const [balancingStatus, setBalancingStatus] = useState<string | null>(null);
-	const [balancingLogs, setBalancingLogs] = useState<
-		[number[], number[]][][]
-	>([]);
 
 	// Logging
 	const [isLogging, setIsLogging] = useState<boolean>(false);
@@ -71,8 +68,21 @@ const BMSFrontend = () => {
 		let isError: boolean = false;
 		for (const node of allNodeData) {
 			if (node.errors.length > 0) {
+				console.log(
+					"Node " +
+						node.nodeId +
+						" has " +
+						node.errors.length +
+						" errors: {" +
+						node.errors +
+						"}"
+				);
 				setBmsError(
-					(currentError) => currentError + node.errors.toString()
+					(currentError) =>
+						currentError +
+						node.nodeId +
+						": " +
+						node.errors.toString()
 				);
 				isError = true;
 				break;
@@ -457,8 +467,6 @@ const BMSFrontend = () => {
 						setIsBalancing={setIsBalancing}
 						balancingStatus={balancingStatus}
 						setBalancingStatus={setBalancingStatus}
-						balancingLogs={balancingLogs}
-						setBalancingLogs={setBalancingLogs}
 						sendCommand={sendCommand}
 						allNodeData={allNodeData}
 					/>
@@ -477,6 +485,12 @@ const BMSFrontend = () => {
 					<OtherTab deviceId={deviceId} sendCommand={sendCommand} />
 				</TabsContent>
 			</Tabs>
+
+			{/* Balancing border */}
+			<div
+				className="fixed inset-0 border-8 border-sky-500 pointer-events-none"
+				hidden={!isBalancing}
+			></div>
 		</div>
 	);
 };

@@ -1,4 +1,3 @@
-import React, { useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,46 +16,19 @@ interface CellBalancingTabProps {
 	setIsBalancing: (isBalancing: boolean) => void;
 	balancingStatus: string | null;
 	setBalancingStatus: (status: string | null) => void;
-	balancingLogs: [number[], number[]][][];
-	setBalancingLogs: React.Dispatch<
-		React.SetStateAction<[number[], number[]][][]>
-	>;
 }
 
 const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 	balancingTime,
 	setBalancingTime,
 	sendCommand,
-	allNodeData,
 	isCharging,
 	setIsCharging,
 	isBalancing,
 	setIsBalancing,
 	balancingStatus,
 	setBalancingStatus,
-	balancingLogs,
-	setBalancingLogs,
 }) => {
-	const logRef = useRef(balancingLogs);
-	useEffect(() => {
-		if (isBalancing) {
-			const newStuff: [number[], number[]][] = allNodeData.map((node) => [
-				node.voltages,
-				node.temps,
-			]);
-			setBalancingLogs((oldLogs: [number[], number[]][][]) => [
-				...oldLogs,
-				newStuff,
-			]);
-		} else {
-			setBalancingLogs([]);
-		}
-	}, [allNodeData, isBalancing, setBalancingLogs]);
-
-	useEffect(() => {
-		logRef.current = balancingLogs;
-	}, [balancingLogs]);
-
 	const startCharging = async () => {
 		try {
 			await sendCommand("s 1");
@@ -84,8 +56,6 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 			await sendCommand("b", balancingTime);
 
 			setTimeout(() => {
-				console.log(logRef.current); // Logs after state update
-				console.log(JSON.stringify(logRef.current));
 				setIsBalancing(false);
 				setBalancingStatus("Balancing completed for all devices");
 			}, balancingTime * 1000);

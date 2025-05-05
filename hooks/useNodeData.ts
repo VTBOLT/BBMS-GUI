@@ -206,6 +206,14 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 				}
 
 				const errors = await sendCommand("z", i);
+				let formattedErrors: string[];
+				if (errors === "") {
+					formattedErrors = [];
+				} else {
+					formattedErrors = errors.split(";").map((error) => {
+						return error.replace(/"/g, "");
+					});
+				}
 
 				try {
 					newData.push({
@@ -213,7 +221,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 						voltages: JSON.parse(`[${voltages}]`),
 						temps: JSON.parse(`[${temps}]`),
 						diagnostic: JSON.parse(`[${diagnostic}]`),
-						errors: [errors],
+						errors: formattedErrors,
 						bmicTemp: parseFloat(mainTemp),
 					});
 				} catch (parseErr) {
