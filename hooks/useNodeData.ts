@@ -6,6 +6,7 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 	const electron = useElectron();
 	const [deviceId, setDeviceId] = useState<number>(1);
 	const [allNodeData, setAllNodeData] = useState<NodeData[]>([]);
+	const [balancingCells, setBalancingCells] = useState<number[]>([]); // Array of node IDs that are balancing
 	const [error, setError] = useState<string>("");
 	const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
 	const [totalCurrent, setTotalCurrent] = useState<number>(0);
@@ -174,6 +175,14 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 		const newData: NodeData[] = [];
 
 		try {
+			let balancingCellsString = await sendCommand("k");
+			// If last char is a comma remove it
+			if (balancingCellsString.endsWith(",")) {
+				balancingCellsString = balancingCellsString.slice(0, -1);
+			}
+
+			setBalancingCells(JSON.parse(`[${balancingCellsString}]`));
+
 			for (let i = 1; i <= numNodes; i++) {
 				let voltages = await sendCommand("v", i);
 				if (voltages === "FAIL") {
@@ -275,5 +284,6 @@ export const useNodeData = (isConnected: boolean, numNodes: number) => {
 		setTerminalOutput,
 		sendCommand,
 		totalCurrent,
+		balancingCells,
 	};
 };

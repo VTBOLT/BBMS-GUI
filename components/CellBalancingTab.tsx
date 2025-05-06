@@ -51,12 +51,12 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 
 	const startBalancing = async () => {
 		try {
-			setIsBalancing(true);
+			// setIsBalancing(true);
 			setBalancingStatus("Balancing started for all devices");
 			await sendCommand("b", balancingTime);
 
 			setTimeout(() => {
-				setIsBalancing(false);
+				// setIsBalancing(false);
 				setBalancingStatus("Balancing completed for all devices");
 			}, balancingTime * 1000);
 		} catch (error) {
@@ -67,7 +67,7 @@ const CellBalancingTab: React.FC<CellBalancingTabProps> = ({
 	const stopBalancing = async () => {
 		try {
 			await sendCommand("x");
-			setIsBalancing(false);
+			// setIsBalancing(false);
 			setBalancingStatus("Balancing stopped for all devices");
 		} catch (error) {
 			setBalancingStatus("Failed to stop balancing: " + error);

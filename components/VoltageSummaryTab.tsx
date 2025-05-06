@@ -9,10 +9,12 @@ import {
 
 interface VoltageSummaryTabProps {
 	allNodeData: NodeData[];
+	balancingCells: number[];
 }
 
 const VoltageSummaryTab: React.FC<VoltageSummaryTabProps> = ({
 	allNodeData,
+	balancingCells,
 }) => {
 	return (
 		<Card>
@@ -33,8 +35,12 @@ const VoltageSummaryTab: React.FC<VoltageSummaryTabProps> = ({
 									<div
 										key={idx}
 										className={`rounded px-5 py-0.5 ${
-											voltage < minCellVoltage ||
-											voltage > maxCellVoltage
+											balancingCells.includes(
+												idx + 1 + 14 * (node.nodeId - 1)
+											)
+												? "bg-sky-100 dark:bg-sky-100"
+												: voltage < minCellVoltage ||
+												  voltage > maxCellVoltage
 												? "bg-red-100 dark:bg-red-900"
 												: voltage < lowCellVoltage
 												? "bg-yellow-100 dark:bg-yellow-900"

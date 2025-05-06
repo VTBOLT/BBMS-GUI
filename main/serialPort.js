@@ -135,7 +135,12 @@ class USBConnection {
 
 		try {
 			const encoder = new TextEncoder();
-			const data = encoder.encode(`${command} ${nodeId}\n`);
+			let data;
+			if (!!nodeId) {
+				data = encoder.encode(`${command} ${nodeId}\n`);
+			} else {
+				data = encoder.encode(`${command}\n`);
+			}
 			await this.device.transferOut(
 				this.endpointOut.endpointNumber,
 				data

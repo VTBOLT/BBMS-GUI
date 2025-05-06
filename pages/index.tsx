@@ -59,10 +59,20 @@ const BMSFrontend = () => {
 		handleDisconnect,
 	} = usePortConnection();
 
-	const { deviceId, allNodeData, terminalOutput, sendCommand, totalCurrent } =
-		useNodeData(isConnected, numNodes);
+	const {
+		deviceId,
+		allNodeData,
+		terminalOutput,
+		sendCommand,
+		totalCurrent,
+		balancingCells,
+	} = useNodeData(isConnected, numNodes);
 
 	const [bmsError, setBmsError] = useState<string>("");
+
+	useEffect(() => {
+		setIsBalancing(balancingCells.length > 0);
+	}, [balancingCells]);
 
 	useEffect(() => {
 		let isError: boolean = false;
@@ -436,7 +446,10 @@ const BMSFrontend = () => {
 				</TabsContent>
 
 				<TabsContent value="voltage-summary" className="mt-4">
-					<VoltageSummaryTab allNodeData={allNodeData} />
+					<VoltageSummaryTab
+						allNodeData={allNodeData}
+						balancingCells={balancingCells}
+					/>
 				</TabsContent>
 
 				<TabsContent value="diagnostics" className="mt-4">
